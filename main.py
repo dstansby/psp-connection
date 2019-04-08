@@ -18,14 +18,16 @@ import psp_helpers
 
 def create_figure(dtime):
     # Get PFSS/GONG data
-    gong_map = gong_helpers.get_closest_map(dtime)
+    gong_map, infuture = gong_helpers.get_closest_map(dtime)
     input, ssmap, header = pfss_helpers.compute_pfss(gong_map)
     gong_date = header['DATE']
 
     # Get PSP location data
     psp_loc = psp_helpers.psp_loc(dtime)
+    psp_loc = psp_helpers.spiral_correction(psp_loc, 400 * u.km / u.s)
 
     # Trace magnetic field line
+    lon, sinlat = pfss_helpers.trace(gong_map, psp_loc, input, retrace=True)
 
     # Plot everything
     fig, axs = plt.subplots(nrows=2)
@@ -41,8 +43,11 @@ def create_figure(dtime):
     ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
     ax.set_title('Source surface magnetic field')
 
+    psp_loc.representation_type = 'spherical'
+    ax.plot(lon, sinlat, lw=1, color='k')
     ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
-    ax.text(5, 0.85, f'PSP r = {psp_loc.radius[0].value:.02} AU', color='white', fontsize=8)
+    ax.text(5, 0.85, f'PSP r = {psp_loc.radius[0].value:.03} AU',
+            color='white', fontsize=8)
 
     return fig
 
@@ -65,7 +70,7 @@ if __name__ == '__main__':
 
     # Loop through each day
     while sdate < edate:
-        print(sdate)
+        print(f"Creating figure for  {sdate}")
         fig = create_figure(sdate + np.timedelta64(12, 'h'))
         fig.savefig(f'figures/{peri_n}/{sdate.year}{sdate.month:02}{sdate.day:02}.png',
                     bbox_inches='tight', dpi=150)

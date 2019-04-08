@@ -66,11 +66,14 @@ def unzip_gong():
 def get_closest_map(dtime):
     if dtime > datetime.now():
         dtime = datetime.now()
+        infuture = True
+    else:
+        infuture = False
     dir = gong_dir(dtime.year, dtime.month, dtime.day)
     files = [x for x in dir.iterdir() if x.suffix == '.fits']
     hours = [int(x.stem[12:14]) for x in files]
     fidx = np.argmin(np.abs(np.array(hours) - dtime.hour))
-    return files[fidx]
+    return files[fidx], infuture
 
 
 def gong_daily_files(year, month):
