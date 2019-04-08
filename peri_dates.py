@@ -27,6 +27,6 @@ psp_r = psp.r
 keep = psp.r < 0.3 * u.au
 
 psp_times = psp_times[keep]
-peri_dates = np.split(psp_times, np.where(np.diff(psp_times) > np.timedelta64(1, 'D'))[0] + 1)
+peri_dates = np.split(psp_times - np.timedelta64(1, 'D'), np.where(np.diff(psp_times) > np.timedelta64(1, 'D'))[0] + 1)
 for i, peri in enumerate(peri_dates):
     print(f'{i + 1}, {peri[0]}, {peri[-1]}')
