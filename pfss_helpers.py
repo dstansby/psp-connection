@@ -20,6 +20,7 @@ def compute_pfss(gong_map):
         ssmap = np.loadtxt(ssfile)
         output = None
     else:
+        print('Calculating PFSS solution')
         # Compute PFSS solution and source surface map
         output = pfsspy.pfss(input)
         br, _, _ = output.bg
@@ -35,6 +36,7 @@ def trace(map_file, psp_coord, pfss_input, retrace=False):
     if fline_file.exists() and not retrace:
         fline = load_fline(fline_file)
     else:
+        print('Tracing field line')
         # Calculate field line
         psp_coord.representation_type = 'cartesian'
         coord = np.array((psp_coord.x.value, psp_coord.y.value, psp_coord.z.value))[:, 0]
