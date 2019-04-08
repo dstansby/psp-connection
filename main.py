@@ -52,6 +52,5 @@ if __name__ == '__main__':
     while sdate < edate:
         print(sdate)
         fig = create_figure(sdate + np.timedelta64(12, 'h'))
-        fig.savefig(f'{sdate.day}.png', bbox_inches='tight')
+        fig.savefig(f'figures/{sdate.year}{sdate.month}{sdate.day}.png', bbox_inches='tight')
         sdate += np.timedelta64(1, 'D')
-        exit()
