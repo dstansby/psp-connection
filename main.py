@@ -16,12 +16,13 @@ import pfss_helpers
 def create_figure(dtime):
     gong_map = gong_helpers.get_closest_map(dtime)
     input, output, header = pfss_helpers.compute_pfss(gong_map)
+    gong_date = header['DATE']
 
     fig, axs = plt.subplots(nrows=2)
     fig.subplots_adjust(hspace=0.3)
     ax = axs[0]
     input.plot_input(ax, norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100))
-    ax.set_title('Input GONG map')
+    ax.set_title(f'Input GONG map ({gong_date})')
     ax.set_xlabel('')
 
     ax = axs[1]
@@ -52,5 +53,6 @@ if __name__ == '__main__':
     while sdate < edate:
         print(sdate)
         fig = create_figure(sdate + np.timedelta64(12, 'h'))
-        fig.savefig(f'figures/{sdate.year}{sdate.month}{sdate.day}.png', bbox_inches='tight')
+        fig.savefig(f'figures/{sdate.year}{sdate.month:02}{sdate.day:02}.png',
+                    bbox_inches='tight')
         sdate += np.timedelta64(1, 'D')
