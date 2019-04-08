@@ -3,16 +3,30 @@ Main code.
 """
 import argparse
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import gong_helpers
 import aia_helpers
+import gong_helpers
+import pfss_helpers
 
 
 def create_figure(dtime):
     gong_map = gong_helpers.get_closest_map(dtime)
-    print(gong_map)
+    input, output, header = pfss_helpers.compute_pfss(gong_map)
+
+    fig, axs = plt.subplots(nrows=2)
+    ax = axs[0]
+    input.plot_input(ax)
+    ax.set_title('Input GONG map')
+
+    ax = axs[1]
+    mesh = output.plot_source_surface(ax)
+    output.plot_pil(ax)
+    ax.set_title('Source surface magnetic field')
+
+    return fig
 
 
 if __name__ == '__main__':
@@ -33,5 +47,7 @@ if __name__ == '__main__':
 
     # Loop through each day
     while sdate < edate:
-        create_figure(sdate + np.timedelta64(12, 'h'))
+        print(sdate)
+        fig = create_figure(sdate + np.timedelta64(12, 'h'))
+        fig.savefig(f'{sdate.day}.png', bbox_inches='tight')
         sdate += np.timedelta64(1, 'D')
