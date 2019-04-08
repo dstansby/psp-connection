@@ -4,6 +4,7 @@ Main code.
 import argparse
 
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolor
 import numpy as np
 import pandas as pd
 
@@ -17,9 +18,11 @@ def create_figure(dtime):
     input, output, header = pfss_helpers.compute_pfss(gong_map)
 
     fig, axs = plt.subplots(nrows=2)
+    fig.subplots_adjust(hspace=0.3)
     ax = axs[0]
-    input.plot_input(ax)
+    input.plot_input(ax, norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100))
     ax.set_title('Input GONG map')
+    ax.set_xlabel('')
 
     ax = axs[1]
     mesh = output.plot_source_surface(ax)
@@ -51,3 +54,4 @@ if __name__ == '__main__':
         fig = create_figure(sdate + np.timedelta64(12, 'h'))
         fig.savefig(f'{sdate.day}.png', bbox_inches='tight')
         sdate += np.timedelta64(1, 'D')
+        exit()
