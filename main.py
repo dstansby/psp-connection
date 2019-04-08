@@ -14,6 +14,7 @@ import aia_helpers
 import gong_helpers
 import pfss_helpers
 import psp_helpers
+import website_helpers
 
 
 def create_figure(dtime):
@@ -75,3 +76,5 @@ if __name__ == '__main__':
         fig.savefig(f'figures/{peri_n}/{sdate.year}{sdate.month:02}{sdate.day:02}.png',
                     bbox_inches='tight', dpi=150)
         sdate += np.timedelta64(1, 'D')
+
+    website_helpers.gen_html(peri_n)
