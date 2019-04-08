@@ -9,6 +9,13 @@ import numpy as np
 map_dir = pathlib.Path('/Users/dstansby/Data/gong/daily_synoptic')
 
 
+def gong_dir(year, month, day):
+    year = str(year)
+    month = f'{month:02}'
+    day = f'{day:02}'
+    return map_dir / (year + month) / f"mrzqs{year[2:]}{month}{day}"
+
+
 def sync_gong(year=datetime.now().year,
               month=datetime.now().month):
     from ftplib import FTP
@@ -57,7 +64,13 @@ def unzip_gong():
 
 
 def get_closest_map(dtime):
-    latest_gong_map()
+    if dtime > datetime.now():
+        dtime = datetime.now()
+    dir = gong_dir(dtime.year, dtime.month, dtime.day)
+    files = [x for x in dir.iterdir() if x.suffix == '.fits']
+    hours = [int(x.stem[12:14]) for x in files]
+    fidx = np.argmin(np.abs(np.array(hours) - dtime.hour))
+    return files[fidx]
 
 
 def gong_daily_files(year, month):
