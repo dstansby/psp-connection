@@ -1,7 +1,9 @@
 from datetime import datetime
+import gzip
+import os
 import pathlib
-import sunpy.io.fits
 
+import sunpy.io.fits
 import numpy as np
 
 map_dir = pathlib.Path('/Users/dstansby/Data/gong/daily_synoptic')
@@ -34,6 +36,24 @@ def sync_gong(year=datetime.now().year,
     if dl.queued_downloads > 0:
         print(f'Downloading {dl.queued_downloads} files')
         dl.download()
+        unzip_gong()
+
+
+def unzip_gong():
+    """
+    Unzip all GONG .fits.gz files
+    """
+    for month_dir in map_dir.iterdir():
+        if month_dir.is_dir():
+            for day_dir in month_dir.iterdir():
+                if day_dir.is_dir():
+                    for file in day_dir.iterdir():
+                        if file.suffix == '.gz':
+                            if not file.with_suffix('').exists():
+                                print(f'Unzipping {file}')
+                                with gzip.open(file, 'rb') as gzf:
+                                    with open(file.with_suffix(''), 'wb') as g:
+                                        g.write(gzf.read())
 
 
 def get_closest_map(dtime):
