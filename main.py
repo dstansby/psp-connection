@@ -3,6 +3,7 @@ Main code.
 """
 import argparse
 
+import astropy.units as u
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolor
 import numpy as np
@@ -12,13 +13,21 @@ import pfsspy
 import aia_helpers
 import gong_helpers
 import pfss_helpers
+import psp_helpers
 
 
 def create_figure(dtime):
+    # Get PFSS/GONG data
     gong_map = gong_helpers.get_closest_map(dtime)
     input, ssmap, header = pfss_helpers.compute_pfss(gong_map)
     gong_date = header['DATE']
 
+    # Get PSP location data
+    psp_loc = psp_helpers.psp_loc(dtime)
+
+    # Trace magnetic field line
+
+    # Plot everything
     fig, axs = plt.subplots(nrows=2)
     fig.subplots_adjust(hspace=0.3)
     ax = axs[0]
@@ -31,6 +40,9 @@ def create_figure(dtime):
     phi, theta = np.meshgrid(input.grid.pg, input.grid.sg)
     ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
     ax.set_title('Source surface magnetic field')
+
+    ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
+    ax.text(5, 0.85, f'PSP r = {psp_loc.radius[0].value:.02} AU', color='white', fontsize=8)
 
     return fig
 
