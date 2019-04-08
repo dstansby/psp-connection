@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolor
 import numpy as np
 import pandas as pd
+import pfsspy
 
 import aia_helpers
 import gong_helpers
@@ -15,7 +16,7 @@ import pfss_helpers
 
 def create_figure(dtime):
     gong_map = gong_helpers.get_closest_map(dtime)
-    input, output, header = pfss_helpers.compute_pfss(gong_map)
+    input, ssmap, header = pfss_helpers.compute_pfss(gong_map)
     gong_date = header['DATE']
 
     fig, axs = plt.subplots(nrows=2)
@@ -26,8 +27,9 @@ def create_figure(dtime):
     ax.set_xlabel('')
 
     ax = axs[1]
-    mesh = output.plot_source_surface(ax)
-    output.plot_pil(ax)
+    pfsspy.plot.radial_cut(input.grid.pg, input.grid.sg, ssmap, ax)
+    phi, theta = np.meshgrid(input.grid.pg, input.grid.sg)
+    ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
     ax.set_title('Source surface magnetic field')
 
     return fig
@@ -53,6 +55,6 @@ if __name__ == '__main__':
     while sdate < edate:
         print(sdate)
         fig = create_figure(sdate + np.timedelta64(12, 'h'))
-        fig.savefig(f'figures/{sdate.year}{sdate.month:02}{sdate.day:02}.png',
-                    bbox_inches='tight')
+        fig.savefig(f'figures/{peri_n}/{sdate.year}{sdate.month:02}{sdate.day:02}.png',
+                    bbox_inches='tight', dpi=150)
         sdate += np.timedelta64(1, 'D')
