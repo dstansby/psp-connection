@@ -130,3 +130,7 @@ def extract_date(filepath):
     """
     [[data, header]] = sunpy.io.fits.read(filepath)
     return datetime.strptime(header['DATE'], '%Y-%m-%dT%H:%M:%S')
+
+
+if __name__ == '__main__':
+    sync_gong()
