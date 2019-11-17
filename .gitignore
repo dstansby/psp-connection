@@ -105,3 +105,4 @@ venv.bak/
 
 # figures
 *.png
+*.DS_Store
