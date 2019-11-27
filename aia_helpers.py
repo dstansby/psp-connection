@@ -3,12 +3,16 @@ import pathlib
 import urllib.request
 import urllib.error
 
+from astropy.coordinates import SkyCoord
 from astropy.time import Time
 import astropy.units as u
+from astropy.wcs import WCS
 from sunpy.net import vso
 from sunpy.net import attrs as a
 from sunpy.net import Fido
-from sunpy.map import Map
+from sunpy.map import Map, make_fitswcs_header
+import sunpy.sun.constants
+from reproject import reproject_interp
 
 map_dir = pathlib.Path('/Users/dstansby/Data/aia')
 map_dir.mkdir(exist_ok=True, parents=True)
@@ -44,8 +48,27 @@ def load_start_of_day_map(dtime):
     return Map(str(mappath))
 
 
+def synop_header(shape_out, dtime):
+    frame_out = SkyCoord(0, 0, unit=u.deg,
+                         frame="heliographic_carrington",
+                         obstime=dtime)
+    header = make_fitswcs_header(
+        shape_out, frame_out,
+        scale=[180 / shape_out[0],
+               360 / shape_out[1]] * u.deg / u.pix,
+        projection_code="CAR")
+    return header
+
+
 def synop_reproject(m):
-    pass
+    m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
+    shape_out = [360, 720]
+    header = synop_header(shape_out, m.date)
+    array, footprint = reproject_interp(m, WCS(header),
+                                        shape_out=shape_out)
+    new_map = Map((array, header))
+    new_map.plot_settings = m.plot_settings
+    return new_map
 
 
 def create_synoptic_map(endtime):
@@ -54,10 +77,12 @@ def create_synoptic_map(endtime):
     endtime given. Note that the maps are taken from the start of each day.
     """
     maps = []
-    for i in range(27):
+    for i in range(2):
         dtime = endtime - timedelta(days=i)
         aia_map = load_start_of_day_map(dtime)
         aia_synop_map = synop_reproject(aia_map)
+        aia_synop_map.peek()
+        exit()
 
 
 if __name__ == '__main__':
