@@ -2,6 +2,7 @@
 Main code.
 """
 import argparse
+import pathlib
 
 import astropy.units as u
 import matplotlib.pyplot as plt
@@ -73,7 +74,9 @@ if __name__ == '__main__':
     while sdate < edate:
         print(f"Creating figure for  {sdate}")
         fig = create_figure(sdate + np.timedelta64(12, 'h'))
-        fig.savefig(f'figures/{peri_n}/{sdate.year}{sdate.month:02}{sdate.day:02}.png',
+        savedir = pathlib.Path('figures') / str(peri_n)
+        savedir.mkdir(exist_ok=True, parents=True)
+        fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
                     bbox_inches='tight', dpi=150)
         sdate += np.timedelta64(1, 'D')
 

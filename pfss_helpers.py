@@ -43,7 +43,8 @@ def trace(map_file, psp_coord, pfss_input, retrace=False):
         coord = coord * (2.5 - 0.001) / np.linalg.norm(coord)
 
         output = pfsspy.pfss(pfss_input)
-        fline = output.trace(coord)
+        tracer = pfsspy.tracing.PythonTracer()
+        fline = tracer.trace(coord, output)[0].coords
         if not retrace:
             fline_xyz = np.array([fline.x / u.m, fline.y / u.m, fline.z / u.m])
             np.savetxt(fline_file, fline_xyz)
