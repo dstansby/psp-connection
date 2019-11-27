@@ -77,16 +77,27 @@ def create_synoptic_map(endtime):
     Create an AIA synoptic map, using 27 daily AIA 193 maps ending on the
     endtime given. Note that the maps are taken from the start of each day.
     """
-    shape = [360, 720]
+    shape = [720, 1440]
     data = np.zeros(shape)
+    weight_sum = np.zeros(shape)
     nmaps = 4
     for i in range(nmaps):
-        dtime = endtime - timedelta(days=i * 5)
+        dtime = endtime - timedelta(days=i)
         aia_map = load_start_of_day_map(dtime)
         aia_synop_map = synop_reproject(aia_map, shape)
-        data = np.nanmean(np.stack((aia_synop_map.data, data)), axis=0)
 
-    synop_map = Map((data, aia_synop_map.meta))
+        # Create weights
+        coord = sunpy.map.all_coordinates_from_map(aia_synop_map)
+        longs = coord.lon.to(u.deg).value
+        l0 = sunpy.coordinates.sun.L0(dtime).to(u.deg).value
+        dcenterlong = (longs - l0 + 180) % 360 - 180
+        weights = 1 - (dcenterlong / 90)**2
+        weights[weights < 0] = 0
+
+        data = np.nanmean(np.stack((aia_synop_map.data * weights, data)), axis=0)
+        weight_sum += weights
+
+    synop_map = Map((data / weight_sum, aia_synop_map.meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
 
     plt.figure()
