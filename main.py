@@ -48,8 +48,9 @@ def create_figure(dtime):
     psp_loc.representation_type = 'spherical'
     ax.plot(lon, sinlat, lw=1, color='k')
     ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
-    ax.text(5, 0.85, f'PSP r = {psp_loc.radius[0].value:.03} AU',
-            color='white', fontsize=8)
+    ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].value:.03} AU, '
+                      f't = {dtime}'),
+            color='white', fontsize=6)
 
     return fig
 
