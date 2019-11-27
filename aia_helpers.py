@@ -7,6 +7,8 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 import astropy.units as u
 from astropy.wcs import WCS
+import numpy as np
+import matplotlib.pyplot as plt
 from sunpy.net import vso
 from sunpy.net import attrs as a
 from sunpy.net import Fido
@@ -60,9 +62,8 @@ def synop_header(shape_out, dtime):
     return header
 
 
-def synop_reproject(m):
+def synop_reproject(m, shape_out):
     m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
-    shape_out = [360, 720]
     header = synop_header(shape_out, m.date)
     array, footprint = reproject_interp(m, WCS(header),
                                         shape_out=shape_out)
@@ -76,13 +77,22 @@ def create_synoptic_map(endtime):
     Create an AIA synoptic map, using 27 daily AIA 193 maps ending on the
     endtime given. Note that the maps are taken from the start of each day.
     """
-    maps = []
-    for i in range(2):
-        dtime = endtime - timedelta(days=i)
+    shape = [360, 720]
+    data = np.zeros(shape)
+    nmaps = 4
+    for i in range(nmaps):
+        dtime = endtime - timedelta(days=i * 5)
         aia_map = load_start_of_day_map(dtime)
-        aia_synop_map = synop_reproject(aia_map)
-        aia_synop_map.peek()
-        exit()
+        aia_synop_map = synop_reproject(aia_map, shape)
+        data = np.nanmean(np.stack((aia_synop_map.data, data)), axis=0)
+
+    synop_map = Map((data, aia_synop_map.meta))
+    synop_map.plot_settings = aia_synop_map.plot_settings
+
+    plt.figure()
+    synop_map.plot()
+    plt.show()
+    exit()
 
 
 if __name__ == '__main__':
