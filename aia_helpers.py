@@ -1,46 +1,65 @@
+from datetime import datetime, timedelta
 import pathlib
 import urllib.request
 import urllib.error
 
-local_aia_dir = pathlib.Path('/Users/dstansby/Data/sdo/aia/synoptic')
-remote_dir = 'http://jsoc2.stanford.edu/data/aia/synoptic'
+from astropy.time import Time
+import astropy.units as u
+from sunpy.net import vso
+from sunpy.net import attrs as a
+from sunpy.net import Fido
+from sunpy.map import Map
+
+map_dir = pathlib.Path('/Users/dstansby/Data/aia')
+map_dir.mkdir(exist_ok=True, parents=True)
 
 
-def closest_aia_map(dtime):
-    """
-    Returns filename of the
-    """
+def map_path(dtime):
+    return map_dir / f'aia_193_{dtime.year}{dtime.month}{dtime.day}.fits'
+
+
+def start_of_day(dtime):
+    return datetime(dtime.year, dtime.month, dtime.day)
+
+
+def download_start_of_day_map(dtime):
+    dtime = start_of_day(dtime)
+    print(f'Fetching map for {dtime}')
+    query = (a.Time(dtime, dtime + timedelta(days=1), dtime),
+             a.Instrument('AIA'),
+             a.Wavelength(193 * u.Angstrom))
+    result = Fido.search(*query)
+    mappath = Fido.fetch(result[0, 0])[0]
+    mappath = pathlib.Path(mappath)
+    mappath.replace(map_path(dtime))
+
+
+def load_start_of_day_map(dtime):
+    dtime = start_of_day(dtime)
+    mappath = map_path(dtime)
+    if not mappath.exists():
+        download_start_of_day_map(dtime)
+
+    print(f'Loading map for {dtime}')
+    return Map(str(mappath))
+
+
+def synop_reproject(m):
     pass
 
 
-def get_aia_synoptic(wavelength, year, month, day, hour, minute):
+def create_synoptic_map(endtime):
     """
-    wavelength : string or int
-        Either '193',
-    year, month, day, hour, minute : int
+    Create an AIA synoptic map, using 27 daily AIA 193 maps ending on the
+    endtime given. Note that the maps are taken from the start of each day.
     """
-    if minute % 2 != 0:
-        raise ValueError('minute must be a multiple of 2')
+    maps = []
+    for i in range(27):
+        dtime = endtime - timedelta(days=i)
+        aia_map = load_start_of_day_map(dtime)
+        aia_synop_map = synop_reproject(aia_map)
 
-    year = str(year)
-    month = f'{month:02d}'
-    day = f'{day:02d}'
-    hour = f'{hour:02d}'
-    minute = f'{minute:02d}'
-    wavelength = f'{wavelength:04d}'
 
-    fname = f'AIA{year}{month}{day}_{hour}{minute}_{wavelength}.fits'
-    local_dir = local_aia_dir / year / month / day
-    if not local_dir.exists():
-        local_dir.mkdir(exist_ok=True, parents=True)
-
-    local_file = local_dir / fname
-    if not local_file.exists():
-        remote_file = remote_dir + f'/{year}/{month}/{day}/H{hour}00/{fname}'
-        print(f'Downloading {remote_file}')
-        try:
-            urllib.request.urlretrieve(remote_file, local_file)
-        except urllib.error.HTTPError:
-            return
-
-    return local_file
+if __name__ == '__main__':
+    dtime = datetime(2019, 11, 1)
+    create_synoptic_map(dtime)
