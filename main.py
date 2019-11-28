@@ -31,11 +31,17 @@ def create_figure(dtime):
     # Trace magnetic field line
     lon, sinlat = pfss_helpers.trace(gong_map, psp_loc, input, retrace=True)
 
+    def add_fline(ax):
+        ax.plot(lon, sinlat, lw=1, color='k')
+        psp_loc.representation_type = 'spherical'
+        ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
+
     # Plot everything
     fig, axs = plt.subplots(nrows=2)
     fig.subplots_adjust(hspace=0.3)
     ax = axs[0]
     input.plot_input(ax, norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100))
+    add_fline(ax)
     ax.set_title(f'Input GONG map ({gong_date})')
     ax.set_xlabel('')
 
@@ -45,9 +51,7 @@ def create_figure(dtime):
     ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
     ax.set_title('Source surface magnetic field')
 
-    psp_loc.representation_type = 'spherical'
-    ax.plot(lon, sinlat, lw=1, color='k')
-    ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
+    add_fline(ax)
     ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].value:.03} AU, '
                       f't = {dtime}'),
             color='white', fontsize=6)
