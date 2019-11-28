@@ -100,7 +100,7 @@ def create_synoptic_map(endtime):
         longs = coord.lon.to(u.deg).value
         l0 = sunpy.coordinates.sun.L0(dtime).to(u.deg).value
         dcenterlong = (longs - l0 + 180) % 360 - 180
-        weights = 1 - (dcenterlong / 90)**2
+        weights = np.exp(-(dcenterlong / 10)**2)
         weights[weights < 0] = 0
 
         aia_data = aia_synop_map.data
