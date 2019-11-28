@@ -71,6 +71,8 @@ def get_closest_map(dtime):
         infuture = False
     dir = gong_dir(dtime.year, dtime.month, dtime.day)
     files = [x for x in dir.iterdir() if x.suffix == '.fits']
+    if len(files) == 0:
+        raise RuntimeError(f'Could not find any .fits files in {dir}')
     hours = [int(x.stem[12:14]) for x in files]
     fidx = np.argmin(np.abs(np.array(hours) - dtime.hour))
     return files[fidx], infuture
