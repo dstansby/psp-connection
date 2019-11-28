@@ -39,7 +39,10 @@ def download_start_of_day_map(dtime):
              a.Instrument('AIA'),
              a.Wavelength(193 * u.Angstrom))
     result = Fido.search(*query)
-    mappath = Fido.fetch(result[0, 0])[0]
+    try:
+        mappath = Fido.fetch(result[0, 0])[0]
+    except IndexError as e:
+        raise RuntimeError(f'No map available for {dtime}')
     mappath = pathlib.Path(mappath)
     mappath.replace(map_path(dtime))
 
@@ -50,7 +53,7 @@ def load_start_of_day_map(dtime):
     if not mappath.exists():
         download_start_of_day_map(dtime)
 
-    print(f'Loading map for {dtime}')
+    print(f'Loading AIA map for {dtime}')
     return Map(str(mappath))
 
 
@@ -76,6 +79,7 @@ def synop_reproject(m, shape_out):
         new_map = Map((array, header))
         new_map.save(str(synop_map_path))
 
+    print(f'Loading {synop_map_path}')
     new_map = Map(synop_map_path)
     new_map.plot_settings = m.plot_settings
     return new_map
@@ -90,8 +94,9 @@ def create_synoptic_map(endtime):
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 27
-    for i in range(nmaps + 1):
-        dtime = endtime - timedelta(days=i)
+    nskip = 1
+    for i in range(nmaps // nskip + 1):
+        dtime = endtime - timedelta(days=i * nskip)
         aia_map = load_start_of_day_map(dtime)
         aia_synop_map = synop_reproject(aia_map, shape)
 
@@ -112,11 +117,7 @@ def create_synoptic_map(endtime):
     data /= weight_sum
     synop_map = Map((data, aia_synop_map.meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
-
-    plt.figure()
-    synop_map.plot()
-    plt.show()
-    exit()
+    return synop_map
 
 
 if __name__ == '__main__':
