@@ -72,7 +72,7 @@ if __name__ == '__main__':
         'peri_dates.csv', parse_dates=[1, 2]).set_index('n')
     peri_dates = peri_dates.loc[peri_n]
     sdate = peri_dates['start']
-    edate = peri_dates['end'] + np.timedelta64(1, 'D')
+    edate = peri_dates['end']
     print(sdate, edate)
 
     # Loop through each day
