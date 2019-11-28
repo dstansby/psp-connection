@@ -83,7 +83,7 @@ if __name__ == '__main__':
         savedir.mkdir(exist_ok=True, parents=True)
         fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
                     bbox_inches='tight', dpi=150)
-        fig.close()
+        plt.close(fig)
         sdate += np.timedelta64(1, 'D')
 
     website_helpers.gen_html(peri_n)
