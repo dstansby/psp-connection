@@ -24,6 +24,10 @@ def map_path(dtime):
     return map_dir / f'aia_193_{dtime.year}{dtime.month}{dtime.day}.fits'
 
 
+def synoptic_map_path(dtime):
+    return map_dir / f'aia_193_synoptic_{dtime.year}{dtime.month}{dtime.day}.fits'
+
+
 def start_of_day(dtime):
     return datetime(dtime.year, dtime.month, dtime.day)
 
@@ -63,11 +67,16 @@ def synop_header(shape_out, dtime):
 
 
 def synop_reproject(m, shape_out):
-    m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
-    header = synop_header(shape_out, m.date)
-    array, footprint = reproject_interp(m, WCS(header),
-                                        shape_out=shape_out)
-    new_map = Map((array, header))
+    synop_map_path = synoptic_map_path(m.date.to_datetime())
+    if not synop_map_path.exists():
+        m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
+        header = synop_header(shape_out, m.date)
+        array, footprint = reproject_interp(m, WCS(header),
+                                            shape_out=shape_out)
+        new_map = Map((array, header))
+        new_map.save(str(synop_map_path))
+
+    new_map = Map(synop_map_path)
     new_map.plot_settings = m.plot_settings
     return new_map
 
@@ -77,7 +86,7 @@ def create_synoptic_map(endtime):
     Create an AIA synoptic map, using 27 daily AIA 193 maps ending on the
     endtime given. Note that the maps are taken from the start of each day.
     """
-    shape = [720, 1440]
+    shape = [360, 720]
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 27
