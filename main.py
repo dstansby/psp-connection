@@ -64,7 +64,6 @@ def create_figure(dtime, aia_map):
         # Add SDO then STEREO longs
         from astropy.coordinates import Longitude
         stereo_fov = Longitude(aia_fov - 78 * u.deg)
-        print(stereo_fov)
         add_lon_fov(aia_fov, ax.get_ylim()[1], 'C2')
         add_lon_fov(stereo_fov, ax.get_ylim()[1] + height, 'C3')
 
