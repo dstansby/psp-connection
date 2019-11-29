@@ -3,18 +3,21 @@ import pathlib
 import urllib.request
 import urllib.error
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, Longitude
 from astropy.time import Time
 import astropy.units as u
 from astropy.wcs import WCS
+from reproject import reproject_interp
+
 import numpy as np
 import matplotlib.pyplot as plt
+
 from sunpy.net import vso
 from sunpy.net import attrs as a
 from sunpy.net import Fido
 from sunpy.map import Map, make_fitswcs_header
 import sunpy.sun.constants
-from reproject import reproject_interp
+
 
 map_dir = pathlib.Path('/Users/dstansby/Data/aia')
 map_dir.mkdir(exist_ok=True, parents=True)
@@ -118,6 +121,12 @@ def create_synoptic_map(endtime):
     synop_map = Map((data, aia_synop_map.meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
     return synop_map
+
+
+def aia_fov(dtime):
+    l0 = sunpy.coordinates.sun.L0(dtime)
+    bounds = Longitude([l0 - 90 * u.deg, l0 + 90 * u.deg])
+    return bounds
 
 
 if __name__ == '__main__':

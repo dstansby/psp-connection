@@ -8,6 +8,7 @@ from datetime import datetime
 import astropy.units as u
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolor
+import matplotlib.patches as mpatch
 import numpy as np
 import pandas as pd
 import pfsspy
@@ -43,18 +44,42 @@ def create_figure(dtime, aia_map):
         psp_loc.representation_type = 'spherical'
         ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
 
+    aia_fov = aia_helpers.aia_fov(dtime)
+
+    def add_fov(ax):
+        height = 0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])
+
+        def add_lon_fov(fov, y0, color):
+            kwargs = dict(clip_on=False, color=color, alpha=0.7)
+            x = [lon.to(u.deg).value for lon in fov]
+            # If FOV crosses zero longitude
+            if x[0] > x[1]:
+                rects = [mpatch.Rectangle((0, y0), x[1] - 0, height, **kwargs),
+                         mpatch.Rectangle((x[0], y0), 360 - x[0], height, **kwargs)]
+            else:
+                rects = [mpatch.Rectangle((x[0], y0), x[1] - x[0], height, **kwargs)]
+            for rect in rects:
+                ax.add_patch(rect)
+
+        # Add SDO then STEREO longs
+        from astropy.coordinates import Longitude
+        stereo_fov = Longitude(aia_fov - 78 * u.deg)
+        print(stereo_fov)
+        add_lon_fov(aia_fov, ax.get_ylim()[1], 'C2')
+        add_lon_fov(stereo_fov, ax.get_ylim()[1] + height, 'C3')
+
     # Plot everything
-    fig = plt.figure(figsize=(6, 8))
+    fig, axs = plt.subplots(nrows=3, figsize=(6, 8))
 
     # Magnetogram
-    ax = fig.add_subplot(311)
+    ax = axs[0]
     input.plot_input(ax, norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100))
     ax.set_title(f'Input GONG map ({gong_date})')
     ax.set_xlabel('')
     add_fline(ax)
 
     # Source surface Br
-    ax = fig.add_subplot(312)
+    ax = axs[1]
     pfsspy.plot.radial_cut(input.grid.pg, input.grid.sg, ssmap, ax)
     phi, theta = np.meshgrid(input.grid.pg, input.grid.sg)
     ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
@@ -65,7 +90,7 @@ def create_figure(dtime, aia_map):
             color='white', fontsize=8)
 
     # AIA synoptic map
-    ax = fig.add_subplot(313)
+    ax = axs[2]
     data = aia_map.data
     data = np.roll(data, data.shape[1] // 2, axis=1)
     ax.imshow(data, extent=(0, 360, -90, 90), origin='lower',
@@ -74,6 +99,7 @@ def create_figure(dtime, aia_map):
     ax.plot(lon, np.rad2deg(np.arcsin(sinlat)), lw=1, color='w')
     psp_loc.representation_type = 'spherical'
     ax.scatter(psp_loc.lon / u.deg, psp_loc.lat / u.deg, color='w', s=5)
+    add_fov(ax)
 
     fig.subplots_adjust(hspace=0.3)
     return fig
