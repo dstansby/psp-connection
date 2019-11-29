@@ -40,12 +40,14 @@ def create_figure(dtime, aia_map):
     # Plot everything
     fig = plt.figure(figsize=(6, 8))
 
+    # Magnetogram
     ax = fig.add_subplot(311)
     input.plot_input(ax, norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100))
     ax.set_title(f'Input GONG map ({gong_date})')
     ax.set_xlabel('')
     add_fline(ax)
 
+    # Source surface Br
     ax = fig.add_subplot(312)
     pfsspy.plot.radial_cut(input.grid.pg, input.grid.sg, ssmap, ax)
     phi, theta = np.meshgrid(input.grid.pg, input.grid.sg)
@@ -56,6 +58,7 @@ def create_figure(dtime, aia_map):
                       f't = {dtime}'),
             color='white', fontsize=8)
 
+    # AIA synoptic map
     ax = fig.add_subplot(313)
     data = aia_map.data
     data = np.roll(data, data.shape[1] // 2, axis=1)
