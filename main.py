@@ -20,6 +20,12 @@ import website_helpers
 
 
 def create_figure(dtime, aia_map):
+    """
+    dtime
+        Datetime at which the PSP orbit is sampled
+    aia_map : GenericMap
+        A synoptic AIA map to show on the bottom panel.
+    """
     # Get PFSS/GONG data
     gong_map, infuture = gong_helpers.get_closest_map(dtime)
     input, ssmap, header = pfss_helpers.compute_pfss(gong_map)
