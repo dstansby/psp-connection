@@ -86,5 +86,5 @@ function showDivs(n) {
     for img in new_imgs:
         img_html += html_img(f'/images/psp/{n_peri}/{img.name}')
     html = html_start + img_html + html_end
-    with open(website_folder / '_includes' / 'psp_slideshow.html', "w") as f:
+    with open(website_folder / '_includes' / f'psp_slideshow_{n_peri}.html', "w") as f:
         f.write(html)
