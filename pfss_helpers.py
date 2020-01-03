@@ -23,8 +23,7 @@ def compute_pfss(gong_map):
         print('Calculating PFSS solution')
         # Compute PFSS solution and source surface map
         output = pfsspy.pfss(input)
-        br, _, _ = output.bg
-        ssmap = br[:, :, -1].T
+        ssmap = output.source_surface_br
         np.savetxt(ssfile, ssmap)
 
     return input, ssmap, header
