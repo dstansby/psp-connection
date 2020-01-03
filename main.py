@@ -17,6 +17,7 @@ import aia_helpers
 import gong_helpers
 import pfss_helpers
 import psp_helpers
+import plot_helpers
 import website_helpers
 
 
@@ -44,30 +45,6 @@ def create_figure(dtime, aia_map):
         psp_loc.representation_type = 'spherical'
         ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
 
-    aia_fov = aia_helpers.aia_fov(dtime)
-
-    def add_fov(ax):
-        height = 0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])
-
-        def add_lon_fov(fov, y0, color):
-            kwargs = dict(clip_on=False, color=color, alpha=0.7)
-            x = [lon.to(u.deg).value for lon in fov]
-            # If FOV crosses zero longitude
-            if x[0] > x[1]:
-                rects = [mpatch.Rectangle((0, y0), x[1] - 0, height, **kwargs),
-                         mpatch.Rectangle((x[0], y0), 360 - x[0], height, **kwargs)]
-            else:
-                rects = [mpatch.Rectangle((x[0], y0), x[1] - x[0], height, **kwargs)]
-            for rect in rects:
-                ax.add_patch(rect)
-
-        # Add SDO then STEREO longs
-        from astropy.coordinates import Longitude
-        stereo_fov = Longitude(aia_fov - 78 * u.deg)
-        print(stereo_fov)
-        add_lon_fov(aia_fov, ax.get_ylim()[1], 'C2')
-        add_lon_fov(stereo_fov, ax.get_ylim()[1] + height, 'C3')
-
     # Plot everything
     fig, axs = plt.subplots(nrows=3, figsize=(6, 8))
 
@@ -85,6 +62,7 @@ def create_figure(dtime, aia_map):
     ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
     ax.set_title('Source surface magnetic field')
     add_fline(ax)
+    ax.set_xlabel('')
     ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].value:.03} AU, '
                       f't = {dtime}'),
             color='white', fontsize=8)
@@ -99,7 +77,7 @@ def create_figure(dtime, aia_map):
     ax.plot(lon, np.rad2deg(np.arcsin(sinlat)), lw=1, color='w')
     psp_loc.representation_type = 'spherical'
     ax.scatter(psp_loc.lon / u.deg, psp_loc.lat / u.deg, color='w', s=5)
-    add_fov(ax)
+    plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.3)
     return fig
