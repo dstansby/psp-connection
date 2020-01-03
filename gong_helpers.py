@@ -2,6 +2,7 @@ from datetime import datetime
 import gzip
 import os
 import pathlib
+import warnings
 
 import sunpy.io.fits
 import numpy as np
@@ -65,7 +66,8 @@ def unzip_gong():
 
 def get_closest_map(dtime):
     if dtime > datetime.now():
-        dtime = datetime.now()
+        dtime = datetime(2019, 12, 31)
+        warnings.warn('Using 31st Dec 2019 as date')
         infuture = True
     else:
         infuture = False
@@ -135,4 +137,4 @@ def extract_date(filepath):
 
 
 if __name__ == '__main__':
-    sync_gong()
+    sync_gong(2019, 12)
