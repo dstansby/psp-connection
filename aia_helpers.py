@@ -16,6 +16,7 @@ from sunpy.net import vso
 from sunpy.net import attrs as a
 from sunpy.net import Fido
 from sunpy.map import Map, make_fitswcs_header
+from sunpy.coordinates import get_earth
 import sunpy.sun.constants
 
 
@@ -72,6 +73,18 @@ def synop_header(shape_out, dtime):
     return header
 
 
+def helioproj_header(shape_out, dtime):
+    sun_width_arscec = 2000
+    frame_out = SkyCoord(0, 0, unit=u.deg,
+                         frame='helioprojective',
+                         obstime=dtime, observer='earth')
+    header = make_fitswcs_header(
+        shape_out, frame_out,
+        scale=[sun_width_arscec / shape_out[0],
+               sun_width_arscec / shape_out[1]] * u.arcsec / u.pix)
+    return header
+
+
 def synop_reproject(m, shape_out):
     synop_map_path = synoptic_map_path(m.date.to_datetime())
     if not synop_map_path.exists():
@@ -92,6 +105,10 @@ def create_synoptic_map(endtime):
     """
     Create an AIA synoptic map, using 27 daily AIA 193 maps ending on the
     endtime given. Note that the maps are taken from the start of each day.
+
+    Returns
+    -------
+    sunpy.map.Map : synoptic map
     """
     shape = [360, 720]
     data = np.zeros(shape)
@@ -121,6 +138,24 @@ def create_synoptic_map(endtime):
     synop_map = Map((data, aia_synop_map.meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
     return synop_map
+
+
+def stonyhurst_reproject(synoptic_map, dtime):
+    '''
+    Reproject a synoptic map into an Earth facing view
+    (ie. a heliographic Stonyhurst frame).
+    '''
+    shape_out = [1024, 1024]
+    header = helioproj_header(shape_out, dtime)
+    wcs = WCS(header)
+    # Now have to manually set the observer coordinate
+    wcs.heliographic_observer = get_earth(dtime)
+    # array, footprint = reproject_interp(synoptic_map, wcs,
+    #                                     shape_out=shape_out)
+    array = np.random.rand(shape_out[0], shape_out[1])
+    new_map = Map((array, header))
+    new_map.plot_settings = synoptic_map.plot_settings
+    return new_map
 
 
 def aia_fov(dtime):

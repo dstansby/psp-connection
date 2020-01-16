@@ -66,8 +66,7 @@ def unzip_gong():
 
 def get_closest_map(dtime):
     if dtime > datetime.now():
-        dtime = datetime(2019, 12, 31)
-        warnings.warn('Using 31st Dec 2019 as date')
+        dtime = datetime.now()
         infuture = True
     else:
         infuture = False
@@ -137,4 +136,4 @@ def extract_date(filepath):
 
 
 if __name__ == '__main__':
-    sync_gong(2019, 12)
+    sync_gong(2020, 1)
