@@ -19,6 +19,8 @@ from sunpy.map import Map, make_fitswcs_header
 from sunpy.coordinates import get_earth
 import sunpy.sun.constants
 
+from time_helpers import start_of_day
+
 
 map_dir = pathlib.Path('/Users/dstansby/Data/aia')
 map_dir.mkdir(exist_ok=True, parents=True)
@@ -32,10 +34,6 @@ def map_path(dtime):
 def synoptic_map_path(dtime):
     datestr = dtime.strftime('%Y%m%d')
     return map_dir / f'aia_193_synoptic_{datestr}.fits'
-
-
-def start_of_day(dtime):
-    return datetime(dtime.year, dtime.month, dtime.day)
 
 
 def download_start_of_day_map(dtime):
@@ -116,10 +114,14 @@ def create_synoptic_map(endtime):
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 27
+    recent_time = None
     for i in range(nmaps):
         dtime = endtime - timedelta(days=i)
         aia_map = load_start_of_day_map(dtime)
         aia_synop_map = synop_reproject(aia_map, shape)
+
+        if recent_time is None:
+            recent_time = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
         # Create weights
         coord = sunpy.map.all_coordinates_from_map(aia_synop_map)
@@ -136,7 +138,11 @@ def create_synoptic_map(endtime):
 
     weight_sum[weight_sum == 0] = np.nan
     data /= weight_sum
-    synop_map = Map((data, aia_synop_map.meta))
+
+    meta = aia_synop_map.meta
+    meta['date-obs'] = recent_time
+
+    synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
     return synop_map
 
@@ -167,7 +173,10 @@ def aia_fov(dtime):
 
 if __name__ == '__main__':
     map = create_synoptic_map(datetime.now())
-    data = map.plot_settings['norm'](map.data)
+    # Norm the data
+    data = map.data
+    data = map.plot_settings['norm'](data)
+
     map = Map((data, map.meta))
     datestr = datetime.now().strftime('%Y%m%d')
     map.save(f'aia193_synoptic_latest_{datestr}.fits')

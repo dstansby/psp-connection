@@ -6,6 +6,8 @@ import numpy as np
 
 import astropy.units as u
 from astropy.wcs import WCS
+from astropy.visualization.mpl_normalize import ImageNormalize
+from astropy.visualization import AsinhStretch
 from sunpy.net import attrs as a
 from sunpy.net import Fido
 from sunpy.map import Map
@@ -87,6 +89,7 @@ def create_synoptic_map(endtime):
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 27
+    recent_time = None
     for i in range(nmaps):
         dtime = endtime - timedelta(days=i)
         try:
@@ -94,6 +97,9 @@ def create_synoptic_map(endtime):
         except RuntimeError:
             print(f'Failed to load map for {dtime}')
             continue
+
+        if recent_time is None:
+            recent_time = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
         aia_synop_map = synop_reproject(aia_map, shape)
 
@@ -112,14 +118,21 @@ def create_synoptic_map(endtime):
 
     weight_sum[weight_sum == 0] = np.nan
     data /= weight_sum
-    synop_map = Map((data, aia_synop_map.meta))
+    meta = aia_synop_map.meta
+    meta['date-obs'] = recent_time
+
+    synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
     return synop_map
 
 
 if __name__ == '__main__':
     map = create_synoptic_map(datetime.now() - timedelta(days=4))
-    data = map.plot_settings['norm'](map.data)
+    # Add a fudge factor so we get the same ballpark as AIA data
+    data = map.data / 3 + (71 - 959 / 3)
+    data[data <= 0] = 0
+    # Apply the same normalisation as an AIA map
+    data = ImageNormalize(stretch=AsinhStretch(0.01), clip=False)(data)
     map = Map((data, map.meta))
     datestr = datetime.now().strftime('%Y%m%d')
     map.save(f'euvi195_synoptic_latest_{datestr}.fits')
