@@ -116,9 +116,8 @@ def create_synoptic_map(endtime):
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 27
-    nskip = 1
-    for i in range(nmaps // nskip + 1):
-        dtime = endtime - timedelta(days=i * nskip)
+    for i in range(nmaps):
+        dtime = endtime - timedelta(days=i)
         aia_map = load_start_of_day_map(dtime)
         aia_synop_map = synop_reproject(aia_map, shape)
 
