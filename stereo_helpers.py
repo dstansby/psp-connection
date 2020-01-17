@@ -88,7 +88,7 @@ def create_synoptic_map(endtime):
     shape = [720, 1440]
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
-    nmaps = 27
+    nmaps = 23
     recent_time = None
     for i in range(nmaps):
         dtime = endtime - timedelta(days=i)
