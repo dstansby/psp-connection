@@ -167,5 +167,8 @@ def aia_fov(dtime):
 
 
 if __name__ == '__main__':
-    dtime = datetime(2019, 11, 1)
-    create_synoptic_map(dtime)
+    map = create_synoptic_map(datetime.now())
+    data = map.plot_settings['norm'](map.data)
+    map = Map((data, map.meta))
+    datestr = datetime.now().strftime('%Y%m%d')
+    map.save(f'aia193_synoptic_latest_{datestr}.fits')
