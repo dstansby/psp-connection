@@ -25,11 +25,13 @@ map_dir.mkdir(exist_ok=True, parents=True)
 
 
 def map_path(dtime):
-    return map_dir / f'aia_193_{dtime.year}{dtime.month}{dtime.day}.fits'
+    datestr = dtime.strftime('%Y%m%d')
+    return map_dir / f'aia_193_{datestr}.fits'
 
 
 def synoptic_map_path(dtime):
-    return map_dir / f'aia_193_synoptic_{dtime.year}{dtime.month}{dtime.day}.fits'
+    datestr = dtime.strftime('%Y%m%d')
+    return map_dir / f'aia_193_synoptic_{datestr}.fits'
 
 
 def start_of_day(dtime):
