@@ -112,7 +112,7 @@ def create_synoptic_map(endtime):
     -------
     sunpy.map.Map : synoptic map
     """
-    shape = [360, 720]
+    shape = [720, 1440]
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 27
