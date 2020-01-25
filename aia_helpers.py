@@ -20,7 +20,7 @@ from sunpy.coordinates import get_earth
 import sunpy.sun.constants
 
 from time_helpers import start_of_day
-from synoptic_helpers import synop_header
+from synoptic_helpers import synop_header, synop_weights
 
 
 map_dir = pathlib.Path('/Users/dstansby/Data/aia')
@@ -100,16 +100,7 @@ def create_synoptic_map(endtime):
         if recent_time is None:
             recent_time = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
-        # Create weights
-        coord = sunpy.map.all_coordinates_from_map(aia_synop_map)
-        longs = coord.lon.to(u.deg).value
-        l0 = sunpy.coordinates.sun.L0(dtime).to(u.deg).value
-        dcenterlong = (longs - l0 + 180) % 360 - 180
-
-        # Start with Guassian weights
-        weights = np.exp(-(dcenterlong / 8)**2)
-        # Weight based on time
-        weights *= (nmaps - i / 2) / nmaps
+        weights = synop_weights(aia_synop_map, aia_map.meta['crln_obs'] * u.deg)
 
         aia_data = aia_synop_map.data
         aia_data[np.isnan(aia_data)] = 0

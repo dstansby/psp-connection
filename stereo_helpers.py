@@ -16,7 +16,7 @@ from reproject import reproject_interp
 
 
 from time_helpers import start_of_day
-from synoptic_helpers import synop_header
+from synoptic_helpers import synop_header, synop_weights
 
 
 map_dir = pathlib.Path('/Users/dstansby/Data/euvi')
@@ -93,7 +93,7 @@ def create_synoptic_map(endtime):
     for i in range(nmaps):
         dtime = endtime - timedelta(days=i)
         try:
-            aia_map = load_start_of_day_map(dtime)
+            euvi_map = load_start_of_day_map(dtime)
         except RuntimeError:
             print(f'Failed to load map for {dtime}')
             continue
@@ -101,15 +101,8 @@ def create_synoptic_map(endtime):
         if recent_time is None:
             recent_time = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
-        aia_synop_map = synop_reproject(aia_map, shape)
-
-        # Create weights
-        coord = sunpy.map.all_coordinates_from_map(aia_synop_map)
-        longs = coord.lon.to(u.deg).value
-        l0 = sunpy.coordinates.sun.L0(dtime).to(u.deg).value - 78
-        dcenterlong = (longs - l0 + 180) % 360 - 180
-        weights = np.exp(-(dcenterlong / 10)**2)
-        weights[weights < 0] = 0
+        aia_synop_map = synop_reproject(euvi_map, shape)
+        weights = synop_weights(aia_synop_map, euvi_map.meta['crln_obs'] * u.deg)
 
         aia_data = aia_synop_map.data
         aia_data[np.isnan(aia_data)] = 0
