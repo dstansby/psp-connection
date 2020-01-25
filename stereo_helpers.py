@@ -13,6 +13,7 @@ from sunpy.net import Fido
 from sunpy.map import Map
 import sunpy.sun.constants
 from reproject import reproject_interp
+from parfive import Downloader
 
 
 from time_helpers import start_of_day
@@ -33,6 +34,19 @@ def synoptic_map_path(dtime):
     return map_dir / f'euvi_195_synoptic_{datestr}.fits'
 
 
+def download_beacon(dtime):
+    datestr = dtime.strftime('%Y%m%d')
+    url = ('https://stereo-ssc.nascom.nasa.gov/pub/beacon/ahead/secchi/img'
+           f'/euvi/{datestr}/{datestr}_005530_n7euA.fts')
+    print(url)
+    dl = Downloader()
+    dl.enqueue_file(url, path=map_path(dtime).parent)
+    files = dl.download()
+    if len(files.errors):
+        raise RuntimeError(f'No EUVI beacon map available for {dtime}')
+    pathlib.Path(files[0]).replace(map_path(dtime))
+
+
 def download_start_of_day_map(dtime):
     dtime = start_of_day(dtime)
     print(f'Fetching EUVI map for {dtime}')
@@ -51,7 +65,7 @@ def load_start_of_day_map(dtime):
     dtime = start_of_day(dtime)
     mappath = map_path(dtime)
     if not mappath.exists():
-        download_start_of_day_map(dtime)
+        download_beacon(dtime)
 
     print(f'Loading EUVI map for {dtime}')
     return Map(str(mappath))
@@ -117,7 +131,7 @@ def create_synoptic_map(endtime):
 
 
 if __name__ == '__main__':
-    map = create_synoptic_map(datetime.now() - timedelta(days=4))
+    map = create_synoptic_map(datetime.now())
     # Add a fudge factor so we get the same ballpark as AIA data
     data = map.data / 3 + (71 - 959 / 3)
     data[data <= 0] = 0
