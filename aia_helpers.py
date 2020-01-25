@@ -128,8 +128,11 @@ def create_synoptic_map(endtime):
         longs = coord.lon.to(u.deg).value
         l0 = sunpy.coordinates.sun.L0(dtime).to(u.deg).value
         dcenterlong = (longs - l0 + 180) % 360 - 180
-        weights = np.exp(-(dcenterlong / 10)**2)
-        weights[weights < 0] = 0
+
+        # Start with Guassian weights
+        weights = np.exp(-(dcenterlong / 8)**2)
+        # Weight based on time
+        weights *= (nmaps - i / 2) / nmaps
 
         aia_data = aia_synop_map.data
         aia_data[np.isnan(aia_data)] = 0
