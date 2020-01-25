@@ -4,25 +4,25 @@ import numpy as np
 from sunpy.map import Map
 import matplotlib.pyplot as plt
 import sunpy.visualization.colormaps as cm
+from sunpy.coordinates.frames import HeliographicCarrington
 from sunpy.coordinates.ephemeris import get_earth, get_horizons_coord
+from astropy.coordinates import SkyCoord
 import astropy.units as u
 
 aia = Map('aia*.fits')[-1]
 euvi = Map('euvi*.fits')[-1]
 
-sta_coord = get_horizons_coord('STEREO-A', time=euvi.date)
-earth_coord = get_earth(time=aia.date)
 
-
-def update_line(m, coord, offset):
-    # Get earth update line
-    coord = coord.transform_to(m.coordinate_frame)
+def update_line(m, offset):
+    coord = SkyCoord(m.meta['crln_new'] * u.deg,
+                     0 * u.deg, obstime=m.date,
+                     frame='heliographic_carrington')
     pix = m.wcs.world_to_pixel(coord)[0]
     return pix - ((offset / 360) * m.data.shape[0])
 
 
-earth_pix = update_line(aia, earth_coord, 65)
-stereo_pix = update_line(euvi, sta_coord, 65)
+earth_pix = update_line(aia, 60)
+stereo_pix = update_line(euvi, 60)
 
 
 fig = plt.figure(figsize=(10, 10))

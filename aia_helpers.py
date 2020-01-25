@@ -91,14 +91,10 @@ def create_synoptic_map(endtime):
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 23
-    recent_time = None
-    for i in range(nmaps):
+    for i in range(nmaps)[::-1]:
         dtime = endtime - timedelta(days=i)
         aia_map = load_start_of_day_map(dtime)
         aia_synop_map = synop_reproject(aia_map, shape)
-
-        if recent_time is None:
-            recent_time = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
         weights = synop_weights(aia_synop_map, aia_map.meta['crln_obs'] * u.deg)
 
@@ -111,10 +107,11 @@ def create_synoptic_map(endtime):
     data /= weight_sum
 
     meta = aia_synop_map.meta
-    meta['date-obs'] = recent_time
+    meta['date-obs'] = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
     synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
+    synop_map.meta['crln_new'] = aia_map.meta['crln_obs']
     return synop_map
 
 

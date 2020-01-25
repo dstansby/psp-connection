@@ -89,17 +89,13 @@ def create_synoptic_map(endtime):
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
     nmaps = 23
-    recent_time = None
-    for i in range(nmaps):
+    for i in range(nmaps)[::-1]:
         dtime = endtime - timedelta(days=i)
         try:
             euvi_map = load_start_of_day_map(dtime)
         except RuntimeError:
             print(f'Failed to load map for {dtime}')
             continue
-
-        if recent_time is None:
-            recent_time = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
         aia_synop_map = synop_reproject(euvi_map, shape)
         weights = synop_weights(aia_synop_map, euvi_map.meta['crln_obs'] * u.deg)
@@ -112,10 +108,11 @@ def create_synoptic_map(endtime):
     weight_sum[weight_sum == 0] = np.nan
     data /= weight_sum
     meta = aia_synop_map.meta
-    meta['date-obs'] = recent_time
+    meta['date-obs'] = dtime.strftime('%Y-%m-%dT%H:%M:%S')
 
     synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
+    synop_map.meta['crln_new'] = euvi_map.meta['crln_obs']
     return synop_map
 
 
