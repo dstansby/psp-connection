@@ -20,6 +20,7 @@ from sunpy.coordinates import get_earth
 import sunpy.sun.constants
 
 from time_helpers import start_of_day
+from synoptic_helpers import synop_header
 
 
 map_dir = pathlib.Path('/Users/dstansby/Data/aia')
@@ -38,7 +39,7 @@ def synoptic_map_path(dtime):
 
 def download_start_of_day_map(dtime):
     dtime = start_of_day(dtime)
-    print(f'Fetching map for {dtime}')
+    print(f'Fetching AIA map for {dtime}')
     query = (a.Time(dtime, dtime + timedelta(days=1), dtime),
              a.Instrument('AIA'),
              a.Wavelength(193 * u.Angstrom))
@@ -46,7 +47,7 @@ def download_start_of_day_map(dtime):
     try:
         mappath = Fido.fetch(result[0, 0])[0]
     except IndexError as e:
-        raise RuntimeError(f'No map available for {dtime}')
+        raise RuntimeError(f'No AIA map available for {dtime}')
     mappath = pathlib.Path(mappath)
     mappath.replace(map_path(dtime))
 
@@ -59,30 +60,6 @@ def load_start_of_day_map(dtime):
 
     print(f'Loading AIA map for {dtime}')
     return Map(str(mappath))
-
-
-def synop_header(shape_out, dtime):
-    frame_out = SkyCoord(0, 0, unit=u.deg,
-                         frame="heliographic_carrington",
-                         obstime=dtime)
-    header = make_fitswcs_header(
-        shape_out, frame_out,
-        scale=[180 / shape_out[0],
-               360 / shape_out[1]] * u.deg / u.pix,
-        projection_code="CAR")
-    return header
-
-
-def helioproj_header(shape_out, dtime):
-    sun_width_arscec = 2000
-    frame_out = SkyCoord(0, 0, unit=u.deg,
-                         frame='helioprojective',
-                         obstime=dtime, observer='earth')
-    header = make_fitswcs_header(
-        shape_out, frame_out,
-        scale=[sun_width_arscec / shape_out[0],
-               sun_width_arscec / shape_out[1]] * u.arcsec / u.pix)
-    return header
 
 
 def synop_reproject(m, shape_out):
@@ -148,24 +125,6 @@ def create_synoptic_map(endtime):
     synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
     return synop_map
-
-
-def stonyhurst_reproject(synoptic_map, dtime):
-    '''
-    Reproject a synoptic map into an Earth facing view
-    (ie. a heliographic Stonyhurst frame).
-    '''
-    shape_out = [1024, 1024]
-    header = helioproj_header(shape_out, dtime)
-    wcs = WCS(header)
-    # Now have to manually set the observer coordinate
-    wcs.heliographic_observer = get_earth(dtime)
-    # array, footprint = reproject_interp(synoptic_map, wcs,
-    #                                     shape_out=shape_out)
-    array = np.random.rand(shape_out[0], shape_out[1])
-    new_map = Map((array, header))
-    new_map.plot_settings = synoptic_map.plot_settings
-    return new_map
 
 
 def aia_fov(dtime):
