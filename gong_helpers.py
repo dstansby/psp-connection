@@ -107,33 +107,5 @@ def gong_daily_files(year, month):
     return [pathlib.Path(file) for file in files]
 
 
-def extract_br(filepath):
-    """
-    Extract Br from a GONG daily map.
-
-    Paramters
-    ---------
-    m : sunpy.map.Map
-
-    Returns
-    -------
-    br : 2D array
-    """
-    [[data, header]] = sunpy.io.fits.read(filepath)
-    br = data
-    br = br - np.nanmean(br)
-    # GONG maps have their LH edge at -180deg, so roll to get it at 0deg
-    br = np.roll(br, header['CRVAL1'] + 180, axis=1)
-    return br
-
-
-def extract_date(filepath):
-    """
-    Get date of a GONG daily map.
-    """
-    [[data, header]] = sunpy.io.fits.read(filepath)
-    return datetime.strptime(header['DATE'], '%Y-%m-%dT%H:%M:%S')
-
-
 if __name__ == '__main__':
     sync_gong()
