@@ -1,16 +1,21 @@
 import astropy.coordinates
 import astropy.units as u
 import numpy as np
+
 import sunpy.coordinates.frames as frames
+import sunpy.io.fits
+import sunpy.map
+
 import pfsspy
 import pfsspy.coords
-import sunpy.io.fits
 
 
 def compute_pfss(gong_map):
     [[br, header]] = sunpy.io.fits.read(gong_map)
     br = br - np.mean(br)
     br = np.roll(br, header['CRVAL1'] + 180, axis=1)
+    header['CRVAL1'] = 180
+    br = sunpy.map.Map(br, header)
     nrho = 60
     rss = 2.5
 
@@ -18,13 +23,14 @@ def compute_pfss(gong_map):
     ssfile = gong_map.with_suffix('.ssmap')
     if ssfile.exists():
         ssmap = np.loadtxt(ssfile)
-        output = None
+        ssmap = sunpy.map.Map(ssmap, header)
     else:
         print('Calculating PFSS solution')
         # Compute PFSS solution and source surface map
         output = pfsspy.pfss(input)
+        ssdata = output.source_surface_br.data
+        np.savetxt(ssfile, ssdata)
         ssmap = output.source_surface_br
-        np.savetxt(ssfile, ssmap)
 
     return input, ssmap, header
 
