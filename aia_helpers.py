@@ -108,6 +108,13 @@ def create_synoptic_map(endtime):
 
     meta = aia_synop_map.meta
     meta['date-obs'] = dtime.strftime('%Y-%m-%dT%H:%M:%S')
+    data = np.roll(data, data.shape[1] // 2, axis=1)
+    meta['crval1'] = 180
+    meta['telescop'] = 'sdo'
+    meta['instrume'] = 'AIA'
+    meta['detector'] = 'AIA'
+    meta['waveunit'] = 'angstrom'
+    meta['wavelnth'] = 193
 
     synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
