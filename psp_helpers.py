@@ -38,7 +38,7 @@ def spiral_correction(psp_coord, vsw):
         return omega_sun * (r - 2.5 * const.R_sun) / vsw
 
     psp_solar_lon = psp_coord.lon + delta_long(psp_coord.radius)
-    psp_solar_surface = coord.SkyCoord(radius=psp_coord.radius,
+    psp_solar_surface = coord.SkyCoord(radius=2.49 * const.R_sun,
                                        lat=psp_coord.lat,
                                        lon=psp_solar_lon,
                                        frame=frames.HeliographicCarrington,

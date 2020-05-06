@@ -12,6 +12,7 @@ import matplotlib.patches as mpatch
 import numpy as np
 import pandas as pd
 import pfsspy
+import sunpy.map
 
 import aia_helpers
 import gong_helpers
@@ -38,48 +39,44 @@ def create_figure(dtime, aia_map):
     psp_loc = psp_helpers.spiral_correction(psp_loc, 400 * u.km / u.s)
 
     # Trace magnetic field line
-    lon, sinlat = pfss_helpers.trace(gong_map, psp_loc, input, retrace=True)
-
-    def add_fline(ax):
-        ax.plot(lon, sinlat, lw=1, color='k')
-        psp_loc.representation_type = 'spherical'
-        ax.scatter(psp_loc.lon / u.deg, np.sin(psp_loc.lat), color='black', s=5)
+    fline = pfss_helpers.trace(gong_map, psp_loc, input, retrace=True)
 
     # Plot everything
-    fig, axs = plt.subplots(nrows=3, figsize=(6, 8))
+    fig = plt.figure(figsize=(6, 8))
 
     # Magnetogram
-    ax = axs[0]
-    input.plot_input(ax, norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100))
+    gong_map = input._map_in
+    ax = fig.add_subplot(3, 1, 1, projection=gong_map)
+    gong_map.plot(axes=ax, cmap='RdBu', norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
     ax.set_title(f'Input GONG map ({gong_date})')
-    ax.set_xlabel('')
-    add_fline(ax)
+    for coord in ax.coords:
+        coord.set_axislabel(' ')
+    ax.plot_coord(fline, lw=1, color='k')
+    ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
 
     # Source surface Br
-    ax = axs[1]
-    pfsspy.plot.radial_cut(input.grid.pg, input.grid.sg, ssmap, ax)
-    phi, theta = np.meshgrid(input.grid.pg, input.grid.sg)
-    ax.contour(np.rad2deg(phi), theta, ssmap, levels=[0])
+    ax = fig.add_subplot(3, 1, 2, projection=ssmap)
+    ssmap.plot(axes=ax, cmap='RdBu')
     ax.set_title('Source surface magnetic field')
-    add_fline(ax)
-    ax.set_xlabel('')
-    ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].value:.03} AU, '
+    for coord in ax.coords:
+        coord.set_axislabel(' ')
+    ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
                       f't = {dtime}'),
             color='white', fontsize=8)
+    ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
+    aia_map = sunpy.map.Map(data, meta)
 
     # AIA synoptic map
-    ax = axs[2]
-    data = aia_map.data
-    data = np.roll(data, data.shape[1] // 2, axis=1)
-    ax.imshow(data, extent=(0, 360, -90, 90), origin='lower',
-              cmap=aia_map.plot_settings['cmap'],
-              norm=aia_map.plot_settings['norm'])
-    ax.plot(lon, np.rad2deg(np.arcsin(sinlat)), lw=1, color='w')
-    psp_loc.representation_type = 'spherical'
-    ax.scatter(psp_loc.lon / u.deg, psp_loc.lat / u.deg, color='w', s=5)
-    plot_helpers.add_fov(ax, dtime)
+    ax = fig.add_subplot(3, 1, 3, projection=aia_map)
+    aia_map.plot(axes=ax)
+    ax.plot_coord(fline, lw=1, color='w')
+    ax.plot_coord(psp_loc, color='w', marker='o', ms=5)
+    ax.set_title('AIA 193 synoptic map')
+    # plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.3)
+    plt.show()
+    exit()
     return fig
 
 
@@ -105,7 +102,7 @@ if __name__ == '__main__':
         # Check if we already have a file
         if not fname.exists():
             print(f"Creating figure for {sdate}")
-            fig = create_figure(sdate + np.timedelta64(12, 'h'), aia_map)
+            fig = create_figure(sdate + timedelta(hours=12), aia_map)
             fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
                         bbox_inches='tight', dpi=150)
             plt.close(fig)
