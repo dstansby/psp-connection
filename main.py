@@ -3,7 +3,7 @@ Main code.
 """
 import argparse
 import pathlib
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import astropy.units as u
 import matplotlib.pyplot as plt
@@ -97,15 +97,20 @@ if __name__ == '__main__':
     else:
         aia_map = aia_helpers.create_synoptic_map(edate)
 
+    savedir = pathlib.Path('figures')
+    savedir.mkdir(exist_ok=True, parents=True)
     # Loop through each day
     while sdate < edate:
-        print(f"Creating figure for {sdate}")
-        fig = create_figure(sdate + np.timedelta64(12, 'h'), aia_map)
-        savedir = pathlib.Path('figures') / str(peri_n)
-        savedir.mkdir(exist_ok=True, parents=True)
-        fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
-                    bbox_inches='tight', dpi=150)
-        plt.close(fig)
+        fname = savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png'
+        # Check if we already have a file
+        if not fname.exists():
+            print(f"Creating figure for {sdate}")
+            fig = create_figure(sdate + np.timedelta64(12, 'h'), aia_map)
+            fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
+                        bbox_inches='tight', dpi=150)
+            plt.close(fig)
+        else:
+            print(f'Figure already present for {sdate}')
         sdate += np.timedelta64(1, 'D')
 
-    website_helpers.gen_html(peri_n)
+    # website_helpers.gen_html(peri_n)
