@@ -58,10 +58,14 @@ def trace(map_file, psp_coord, pfss_input, retrace=False):
 
     fline.representation_type = 'spherical'
     lon = fline.lon.to_value(u.deg)
-    sinlat = np.sin(fline.lat).value
-    lon, sinlat = insert_nans(lon, sinlat)
+    lat = fline.lat.to_value(u.deg)
+    lon, lat = insert_nans(lon, lat)
 
-    return lon, sinlat
+    fline = astropy.coordinates.SkyCoord(lon * u.deg, lat * u.deg, fline.radius,
+                                         frame='heliographic_carrington',
+                                         obstime=fline.obstime)
+
+    return fline
 
 
 def load_fline(f):
