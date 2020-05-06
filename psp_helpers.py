@@ -6,7 +6,7 @@ import heliopy.data.spice as spicedata
 from heliopy import spice
 
 for kernel in ['psp', 'planet_trajectories',
-               'planet_orientations', 'psp_pred']:
+               'planet_orientations', 'psp_pred', 'solo']:
     k = spicedata.get_kernel(kernel)
     spice.furnish(k)
 
@@ -20,6 +20,17 @@ def psp_loc(dtime):
                                representation_type='cartesian')
     psp_coord.representation_type = 'spherical'
     return psp_coord
+
+
+def solo_loc(dtime):
+    solo = spice.Trajectory("Solar Orbiter")
+    solo.generate_positions([dtime], 'Sun', 'IAU_SUN')
+    solo.change_units(u.au)
+    solo_coord = coord.SkyCoord(x=psp.x, y=psp.y, z=psp.z,
+                                frame=frames.HeliographicCarrington,
+                                representation_type='cartesian')
+    solo_coord.representation_type = 'spherical'
+    return solo_coord
 
 
 def spiral_correction(psp_coord, vsw):
