@@ -44,8 +44,11 @@ def create_figure(dtime, aia_map):
     # Plot everything
     fig = plt.figure(figsize=(6, 8))
 
+    dobs = psp_loc.obstime.isot[0]
     # Magnetogram
     gong_map = input._map_in
+    gong_map.meta['date-obs'] = dobs
+
     ax = fig.add_subplot(3, 1, 1, projection=gong_map)
     gong_map.plot(axes=ax, cmap='RdBu', norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
     ax.set_title(f'Input GONG map ({gong_date})')
@@ -54,6 +57,7 @@ def create_figure(dtime, aia_map):
     ax.plot_coord(fline, lw=1, color='k')
     ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
 
+    ssmap.meta['date-obs'] = dobs
     # Source surface Br
     ax = fig.add_subplot(3, 1, 2, projection=ssmap)
     ssmap.plot(axes=ax, cmap='RdBu')
@@ -64,8 +68,8 @@ def create_figure(dtime, aia_map):
                       f't = {dtime}'),
             color='white', fontsize=8)
     ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
-    aia_map = sunpy.map.Map(data, meta)
 
+    aia_map.meta['date-obs'] = psp_loc.obstime.isot[0]
     # AIA synoptic map
     ax = fig.add_subplot(3, 1, 3, projection=aia_map)
     aia_map.plot(axes=ax)
@@ -75,8 +79,6 @@ def create_figure(dtime, aia_map):
     # plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.3)
-    plt.show()
-    exit()
     return fig
 
 
@@ -84,7 +86,8 @@ if __name__ == '__main__':
     # Set start date and end date
     #
     # For PSP, see peri_dates.csv for a list
-    sdate = datetime(2020, 5, 1)
+    sdate = datetime.now()
+    sdate = datetime(sdate.year, sdate.month, sdate.day, 0)
     edate = datetime.now() + timedelta(days=7)
     print(sdate, edate)
 
@@ -108,6 +111,6 @@ if __name__ == '__main__':
             plt.close(fig)
         else:
             print(f'Figure already present for {sdate}')
-        sdate += np.timedelta64(1, 'D')
+        sdate += timedelta(days=1)
 
     # website_helpers.gen_html(peri_n)
