@@ -46,6 +46,7 @@ def spiral_correction(psp_coord, vsw):
                                        lat=psp_coord.lat,
                                        lon=psp_solar_lon,
                                        frame=frames.HeliographicCarrington,
+                                       obstime=psp_coord.obstime,
                                        representation_type='spherical')
     return psp_solar_surface
 
