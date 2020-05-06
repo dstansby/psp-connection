@@ -48,19 +48,16 @@ def trace(map_file, psp_coord, pfss_input, retrace=False):
     else:
         print('Tracing field line')
         # Calculate field line
-        psp_coord.representation_type = 'cartesian'
-        coord = np.array((psp_coord.x.value, psp_coord.y.value, psp_coord.z.value))[:, 0]
-        coord = coord * (2.5 - 0.001) / np.linalg.norm(coord)
 
         output = pfsspy.pfss(pfss_input)
         tracer = pfsspy.tracing.PythonTracer()
-        fline = tracer.trace(coord, output)[0].coords
+        fline = tracer.trace(psp_coord, output)[0].coords
         if not retrace:
             fline_xyz = np.array([fline.x / u.m, fline.y / u.m, fline.z / u.m])
             np.savetxt(fline_file, fline_xyz)
 
     fline.representation_type = 'spherical'
-    lon = fline.lon.value
+    lon = fline.lon.to_value(u.deg)
     sinlat = np.sin(fline.lat).value
     lon, sinlat = insert_nans(lon, sinlat)
 
