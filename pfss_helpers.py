@@ -1,4 +1,5 @@
 import astropy.coordinates
+from astropy.time import Time
 import astropy.units as u
 import numpy as np
 
@@ -10,7 +11,7 @@ import pfsspy
 import pfsspy.coords
 
 
-def compute_pfss(gong_fname):
+def compute_pfss(gong_fname, dtime):
     gong_map = sunpy.map.Map(gong_fname)
     br = gong_map.data
     header = gong_map.meta
@@ -18,6 +19,8 @@ def compute_pfss(gong_fname):
     br = br - np.mean(br)
     br = np.roll(br, header['CRVAL1'] + 180, axis=1)
     header['CRVAL1'] = 180
+    header['DATE_ORI'] = header['DATE']
+    header['date-obs'] = Time(dtime).isot
 
     gong_map = sunpy.map.Map(br, header)
     nrho = 60
@@ -59,9 +62,10 @@ def trace(map_file, psp_coord, pfss_input, retrace=False):
     fline.representation_type = 'spherical'
     lon = fline.lon.to_value(u.deg)
     lat = fline.lat.to_value(u.deg)
-    lon, lat = insert_nans(lon, lat)
+    r = fline.radius.to_value(u.m)
+    lon, lat, r = insert_nans(lon, lat, r)
 
-    fline = astropy.coordinates.SkyCoord(lon * u.deg, lat * u.deg, fline.radius,
+    fline = astropy.coordinates.SkyCoord(lon * u.deg, lat * u.deg, r * u.m,
                                          frame='heliographic_carrington',
                                          obstime=fline.obstime)
 
@@ -86,8 +90,9 @@ def load_fline(f):
     return fline
 
 
-def insert_nans(lon, sinlat):
+def insert_nans(lon, sinlat, r):
     insert = np.nonzero(np.abs(np.diff(lon)) > 180)[0]
     lon = np.insert(lon, insert + 1, np.nan)
     sinlat = np.insert(sinlat, insert + 1, np.nan)
-    return lon, sinlat
+    r = np.insert(r, insert + 1, np.nan)
+    return lon, sinlat, r

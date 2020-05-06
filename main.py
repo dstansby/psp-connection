@@ -5,6 +5,7 @@ import argparse
 import pathlib
 from datetime import datetime, timedelta
 
+from astropy.time import Time
 import astropy.units as u
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolor
@@ -29,10 +30,10 @@ def create_figure(dtime, aia_map):
     aia_map : GenericMap
         A synoptic AIA map to show on the bottom panel.
     """
+    dtime_str = Time(dtime).isot
     # Get PFSS/GONG data
     gong_map, infuture = gong_helpers.get_closest_map(dtime)
-    input, ssmap, header = pfss_helpers.compute_pfss(gong_map)
-    gong_date = header['DATE']
+    input, ssmap, header = pfss_helpers.compute_pfss(gong_map, dtime)
 
     # Get PSP location data
     psp_loc = psp_helpers.psp_loc(dtime)
@@ -47,7 +48,7 @@ def create_figure(dtime, aia_map):
     dobs = psp_loc.obstime.isot[0]
     # Magnetogram
     gong_map = input._map_in
-    gong_map.meta['date-obs'] = dobs
+    gong_date = gong_map.meta['DATE_ORI']
 
     ax = fig.add_subplot(3, 1, 1, projection=gong_map)
     gong_map.plot(axes=ax, cmap='RdBu', norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
@@ -57,7 +58,6 @@ def create_figure(dtime, aia_map):
     ax.plot_coord(fline, lw=1, color='k')
     ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
 
-    ssmap.meta['date-obs'] = dobs
     # Source surface Br
     ax = fig.add_subplot(3, 1, 2, projection=ssmap)
     ssmap.plot(axes=ax, cmap='RdBu')
@@ -69,7 +69,7 @@ def create_figure(dtime, aia_map):
             color='white', fontsize=8)
     ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
 
-    aia_map.meta['date-obs'] = psp_loc.obstime.isot[0]
+    aia_map.meta['date-obs'] = dtime_str
     # AIA synoptic map
     ax = fig.add_subplot(3, 1, 3, projection=aia_map)
     aia_map.plot(axes=ax)
