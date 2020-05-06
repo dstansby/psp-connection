@@ -37,10 +37,10 @@ def create_figure(dtime, aia_map):
 
     # Get PSP location data
     psp_loc = psp_helpers.psp_loc(dtime)
-    psp_loc = psp_helpers.spiral_correction(psp_loc, 400 * u.km / u.s)
+    psp_loc_ss = psp_helpers.spiral_correction(psp_loc, 400 * u.km / u.s)
 
     # Trace magnetic field line
-    fline = pfss_helpers.trace(gong_map, psp_loc, input, retrace=True)
+    fline = pfss_helpers.trace(gong_map, psp_loc_ss, input, retrace=True)
 
     # Plot everything
     fig = plt.figure(figsize=(6, 8))
@@ -51,12 +51,13 @@ def create_figure(dtime, aia_map):
     gong_date = gong_map.meta['DATE_ORI']
 
     ax = fig.add_subplot(3, 1, 1, projection=gong_map)
-    gong_map.plot(axes=ax, cmap='RdBu', norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
+    gong_map.plot(axes=ax, cmap='RdBu',
+                  norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
     ax.set_title(f'Input GONG map ({gong_date})')
     for coord in ax.coords:
         coord.set_axislabel(' ')
     ax.plot_coord(fline, lw=1, color='k')
-    ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
+    ax.plot_coord(psp_loc_ss, color='black', marker='o', ms=5)
 
     # Source surface Br
     ax = fig.add_subplot(3, 1, 2, projection=ssmap)
@@ -64,17 +65,17 @@ def create_figure(dtime, aia_map):
     ax.set_title('Source surface magnetic field')
     for coord in ax.coords:
         coord.set_axislabel(' ')
-    ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
+    ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].to_value(u.au):.0f} AU, '
                       f't = {dtime}'),
             color='white', fontsize=8)
-    ax.plot_coord(psp_loc, color='black', marker='o', ms=5)
+    ax.plot_coord(psp_loc_ss, color='black', marker='o', ms=5)
 
     aia_map.meta['date-obs'] = dtime_str
     # AIA synoptic map
     ax = fig.add_subplot(3, 1, 3, projection=aia_map)
     aia_map.plot(axes=ax)
     ax.plot_coord(fline, lw=1, color='w')
-    ax.plot_coord(psp_loc, color='w', marker='o', ms=5)
+    ax.plot_coord(psp_loc_ss, color='w', marker='o', ms=5)
     ax.set_title('AIA 193 synoptic map')
     # plot_helpers.add_fov(ax, dtime)
 
