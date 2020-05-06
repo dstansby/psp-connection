@@ -136,4 +136,4 @@ def extract_date(filepath):
 
 
 if __name__ == '__main__':
-    sync_gong(2020, 1)
+    sync_gong()
