@@ -10,17 +10,22 @@ import pfsspy
 import pfsspy.coords
 
 
-def compute_pfss(gong_map):
-    [[br, header]] = sunpy.io.fits.read(gong_map)
+def compute_pfss(gong_fname):
+    gong_map = sunpy.map.Map(gong_fname)
+    br = gong_map.data
+    header = gong_map.meta
+
     br = br - np.mean(br)
     br = np.roll(br, header['CRVAL1'] + 180, axis=1)
     header['CRVAL1'] = 180
-    br = sunpy.map.Map(br, header)
+
+    gong_map = sunpy.map.Map(br, header)
     nrho = 60
     rss = 2.5
 
-    input = pfsspy.Input(br, nrho, rss)
-    ssfile = gong_map.with_suffix('.ssmap')
+    input = pfsspy.Input(gong_map, nrho, rss)
+    ssfile = gong_fname.with_suffix('.ssmap')
+
     if ssfile.exists():
         ssmap = np.loadtxt(ssfile)
         ssmap = sunpy.map.Map(ssmap, header)
