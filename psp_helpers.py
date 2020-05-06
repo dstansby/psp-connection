@@ -16,7 +16,6 @@ for kernel in ['psp', 'planet_trajectories',
 def psp_loc(dtime):
     psp = spice.Trajectory('SPP')
     psp.generate_positions([dtime], 'Sun', 'IAU_SUN')
-    psp.change_units(u.au)
     psp_coord = psp.coords
     psp_coord.representation_type = 'spherical'
     return psp_coord
