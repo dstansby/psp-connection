@@ -17,9 +17,7 @@ def psp_loc(dtime):
     psp = spice.Trajectory('SPP')
     psp.generate_positions([dtime], 'Sun', 'IAU_SUN')
     psp.change_units(u.au)
-    psp_coord = coord.SkyCoord(x=psp.x, y=psp.y, z=psp.z,
-                               frame=frames.HeliographicCarrington,
-                               representation_type='cartesian')
+    psp_coord = psp.coords
     psp_coord.representation_type = 'spherical'
     return psp_coord
 
@@ -28,9 +26,7 @@ def solo_loc(dtime):
     solo = spice.Trajectory("Solar Orbiter")
     solo.generate_positions([dtime], 'Sun', 'IAU_SUN')
     solo.change_units(u.au)
-    solo_coord = coord.SkyCoord(x=psp.x, y=psp.y, z=psp.z,
-                                frame=frames.HeliographicCarrington,
-                                representation_type='cartesian')
+    solo_coord = solo.coords
     solo_coord.representation_type = 'spherical'
     return solo_coord
 
