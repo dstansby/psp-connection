@@ -65,7 +65,7 @@ def create_figure(dtime, aia_map):
     ax.set_title('Source surface magnetic field')
     for coord in ax.coords:
         coord.set_axislabel(' ')
-    ax.text(5, 0.85, (f'PSP r = {psp_loc.radius[0].to_value(u.au):.0f} AU, '
+    ax.text(5, 0.85, (f'Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
                       f't = {dtime}'),
             color='white', fontsize=8)
     ax.plot_coord(psp_loc_ss, color='black', marker='o', ms=5)
