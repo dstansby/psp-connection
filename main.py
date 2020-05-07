@@ -53,7 +53,8 @@ def create_figure(dtime, aia_map):
     ax = fig.add_subplot(3, 1, 1, projection=gong_map)
     gong_map.plot(axes=ax, cmap='RdBu',
                   norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
-    ax.set_title(f'Input GONG map ({gong_date})')
+    ax.set_title('Input GONG magnetogram')
+    ax.text(0.01, 0.01, (f'Last updated {gong_date}'), color='black', fontsize=8, transform=ax.transAxes)
     for coord in ax.coords:
         coord.set_axislabel(' ')
     ax.plot_coord(fline, lw=1, color='k')
@@ -63,11 +64,12 @@ def create_figure(dtime, aia_map):
     ax = fig.add_subplot(3, 1, 2, projection=ssmap)
     ssmap.plot(axes=ax, cmap='RdBu')
     ax.set_title('Source surface magnetic field')
+    ax.contour(ssmap.data, levels=[0], colors='black', linewidths=0.5)
     for coord in ax.coords:
         coord.set_axislabel(' ')
-    ax.text(5, 0.85, (f'Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
-                      f't = {dtime}'),
-            color='white', fontsize=8)
+    ax.text(0.01, 0.01, (f'Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
+                       f't = {dtime}'),
+            color='white', fontsize=8, transform=ax.transAxes)
     ax.plot_coord(psp_loc_ss, color='black', marker='o', ms=5)
 
     aia_map.meta['date-obs'] = dtime_str
