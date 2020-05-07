@@ -106,7 +106,7 @@ if __name__ == '__main__':
     while sdate < edate:
         fname = savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png'
         # Check if we already have a file
-        if not fname.exists():
+        if not fname.exists() or sdate > datetime.now():
             print(f"Creating figure for {sdate}")
             fig = create_figure(sdate + timedelta(hours=12), aia_map)
             fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
