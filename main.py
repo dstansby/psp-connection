@@ -53,8 +53,9 @@ def create_figure(dtime, aia_map):
     ax = fig.add_subplot(3, 1, 1, projection=gong_map)
     gong_map.plot(axes=ax, cmap='RdBu',
                   norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
-    ax.set_title('Input GONG magnetogram')
-    ax.text(0.01, 0.01, (f'Last updated {gong_date}'), color='black', fontsize=8, transform=ax.transAxes)
+    ax.set_title('Input GONG magnetogram', pad=12)
+    ax.text(0.01, 1.02, (f'Last updated {gong_date}'), color='black',
+            fontsize=6, transform=ax.transAxes)
     for coord in ax.coords:
         coord.set_axislabel(' ')
     ax.plot_coord(fline, lw=1, color='k')
@@ -63,13 +64,14 @@ def create_figure(dtime, aia_map):
     # Source surface Br
     ax = fig.add_subplot(3, 1, 2, projection=ssmap)
     ssmap.plot(axes=ax, cmap='RdBu')
-    ax.set_title('Source surface magnetic field')
     ax.contour(ssmap.data, levels=[0], colors='black', linewidths=0.5)
+    # Plot formatting
+    ax.set_title('Source surface magnetic field', pad=12)
     for coord in ax.coords:
         coord.set_axislabel(' ')
-    ax.text(0.01, 0.01, (f'Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
-                       f't = {dtime}'),
-            color='white', fontsize=8, transform=ax.transAxes)
+    ax.text(0.01, 1.02, (f'Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU, '
+                         f't = {dtime}'),
+            color='black', fontsize=6, transform=ax.transAxes)
     ax.plot_coord(psp_loc_ss, color='black', marker='o', ms=5)
 
     aia_map.meta['date-obs'] = dtime_str
@@ -81,7 +83,7 @@ def create_figure(dtime, aia_map):
     ax.set_title('AIA 193 synoptic map')
     # plot_helpers.add_fov(ax, dtime)
 
-    fig.subplots_adjust(hspace=0.3)
+    fig.subplots_adjust(hspace=0.35)
     return fig
 
 
@@ -89,7 +91,7 @@ if __name__ == '__main__':
     # Set start date and end date
     #
     # For PSP, see peri_dates.csv for a list
-    sdate = datetime.now()
+    sdate = datetime.now() - timedelta(days=6)
     sdate = datetime(sdate.year, sdate.month, sdate.day, 0)
     edate = datetime.now() + timedelta(days=7)
     print(sdate, edate)
