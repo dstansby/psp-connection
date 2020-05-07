@@ -36,8 +36,8 @@ def create_figure(dtime, aia_map):
     input, ssmap, header = pfss_helpers.compute_pfss(gong_map, dtime)
 
     # Get PSP location data
-    psp_loc = psp_helpers.psp_loc(dtime)
-    psp_loc_ss = psp_helpers.spiral_correction(psp_loc, 400 * u.km / u.s)
+    psp_loc = psp_helpers.solo_loc(dtime)
+    psp_loc_ss = psp_helpers.spiral_correction(psp_loc, 350 * u.km / u.s)
 
     # Trace magnetic field line
     fline = pfss_helpers.trace(gong_map, psp_loc_ss, input, retrace=True)
