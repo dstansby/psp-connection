@@ -32,7 +32,7 @@ def sync_gong(year=datetime.now().year,
     daydirs = ftp.nlst()
 
     # List to store files that need to be downloaded
-    dl = parfive.Downloader()
+    dl = parfive.Downloader(max_conn=2)
     for daydir in daydirs:
         ftp.cwd(f"/oQR/zqs/{year}{month}/{daydir}")
         files = ftp.nlst()
@@ -43,7 +43,9 @@ def sync_gong(year=datetime.now().year,
 
     if dl.queued_downloads > 0:
         print(f'Downloading {dl.queued_downloads} files')
-        dl.download()
+        res = dl.download()
+        if len(res.errors):
+            print(res.errors)
         unzip_gong()
 
 
