@@ -40,7 +40,7 @@ def compute_pfss(gong_fname, dtime):
         np.savetxt(ssfile, ssdata)
         ssmap = output.source_surface_br
 
-    return input, ssmap, header
+    return input, ssmap
 
 
 def trace(map_file, psp_coord, pfss_input, retrace=False):

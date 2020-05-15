@@ -77,9 +77,10 @@ def load_start_of_day_map(dtime):
         raise RuntimeError(f'No AIA map available for {dtime}') from e
 
 
-def synop_reproject(m, shape_out):
-    synop_map_path = synoptic_map_path(m.date.to_datetime())
+def synop_reproject(dtime, shape_out):
+    synop_map_path = synoptic_map_path(dtime)
     if not synop_map_path.exists():
+        m = load_start_of_day_map(dtime)
         m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
         # Reproject
         print(f'Reprojecting {synop_map_path}')
@@ -89,13 +90,14 @@ def synop_reproject(m, shape_out):
                                                 shape_out=shape_out)
         # Save some memory
         array = np.int16(array)
+        for key in m.meta:
+            if key not in header:
+                header[key] = m.meta[key]
         new_map = Map((array, header))
-        new_map.meta['crln_obs'] = m.meta['crln_obs']
         new_map.save(str(synop_map_path))
 
     print(f'Loading {synop_map_path}')
     new_map = Map(synop_map_path)
-    new_map.plot_settings = m.plot_settings
     return new_map
 
 
@@ -126,8 +128,7 @@ def create_synoptic_map(endtime, aia_maps={}):
         dtime = endtime - timedelta(days=i)
         if dtime.date() in aia_maps:
             continue
-        aia_map = load_start_of_day_map(dtime)
-        aia_maps[dtime.date()] = synop_reproject(aia_map, shape)
+        aia_maps[dtime.date()] = synop_reproject(dtime, shape)
 
     # Add up all the reprojected maps
     for i in range(nmaps)[::-1]:
