@@ -9,10 +9,10 @@ def html_img(fname):
     return '\n      <img class="mySlides" src="{}" style="width:100%">'.format(fname)
 
 
-def copy_images(n_peri):
+def copy_images():
     # Copy images across
-    img_folder = code_folder / 'figures' / str(n_peri)
-    web_img_folder = website_folder / 'images' / 'psp' / str(n_peri)
+    img_folder = code_folder / 'figures'
+    web_img_folder = website_folder / 'images' / 'solo'
     web_img_folder.mkdir(parents=True, exist_ok=True)
     # Collect all files to copy
     imgs = [x for x in img_folder.iterdir() if x.suffix == '.png']
@@ -23,11 +23,11 @@ def copy_images(n_peri):
     return new_imgs
 
 
-def gen_html(n_peri):
+def gen_html():
     """
     Generate slideshow HTML.
     """
-    print(f'Generating HTML for perihelion {n_peri}')
+    print(f'Generating HTML')
     html_start = '''
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -81,10 +81,14 @@ function showDivs(n) {
 </body>
 </html>
     '''
-    new_imgs = copy_images(n_peri)
+    new_imgs = copy_images()
     img_html = ''
     for img in new_imgs:
-        img_html += html_img(f'/images/psp/{n_peri}/{img.name}')
+        img_html += html_img(f'/images/solo/{img.name}')
     html = html_start + img_html + html_end
-    with open(website_folder / '_includes' / f'psp_slideshow_{n_peri}.html', "w") as f:
+    with open(website_folder / '_includes' / f'solo_slideshow.html', "w") as f:
         f.write(html)
+
+
+if __name__ == '__main__':
+    gen_html()
