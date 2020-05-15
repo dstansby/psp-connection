@@ -81,10 +81,16 @@ def synop_reproject(m, shape_out):
     synop_map_path = synoptic_map_path(m.date.to_datetime())
     if not synop_map_path.exists():
         m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
+        # Reproject
+        print(f'Reprojecting {synop_map_path}')
         header = synop_header(shape_out, m.date)
-        array, footprint = reproject_interp(m, WCS(header),
-                                            shape_out=shape_out)
+        with np.errstate(invalid='ignore'):
+            array, footprint = reproject_interp(m, WCS(header),
+                                                shape_out=shape_out)
+        # Save some memory
+        array = np.int16(array)
         new_map = Map((array, header))
+        new_map.meta['crln_obs'] = m.meta['crln_obs']
         new_map.save(str(synop_map_path))
 
     print(f'Loading {synop_map_path}')
@@ -93,25 +99,41 @@ def synop_reproject(m, shape_out):
     return new_map
 
 
-def create_synoptic_map(endtime):
+def create_synoptic_map(endtime, aia_maps={}):
     """
-    Create an AIA synoptic map, using 27 daily AIA 193 maps ending on the
+    Create an AIA synoptic map, using 25 daily AIA 193 maps ending on the
     endtime given. Note that the maps are taken from the start of each day.
+
+    Parameters
+    ----------
+    endtime :
+    aia_maps : dict
+        A mapping of `datetime.date` to `sunpy.map.GenericMap`.
 
     Returns
     -------
     sunpy.map.Map : synoptic map
     """
+    if endtime > datetime.now():
+        endtime = datetime.now()
     shape = [720, 1440]
     data = np.zeros(shape)
     weight_sum = np.zeros(shape)
-    nmaps = 23
+    nmaps = 25
+
+    # Fill up aia_maps
     for i in range(nmaps)[::-1]:
         dtime = endtime - timedelta(days=i)
+        if dtime.date() in aia_maps:
+            continue
         aia_map = load_start_of_day_map(dtime)
-        aia_synop_map = synop_reproject(aia_map, shape)
+        aia_maps[dtime.date()] = synop_reproject(aia_map, shape)
 
-        weights = synop_weights(aia_synop_map, aia_map.meta['crln_obs'] * u.deg)
+    # Add up all the reprojected maps
+    for i in range(nmaps)[::-1]:
+        dtime = endtime - timedelta(days=i)
+        aia_synop_map = aia_maps[dtime.date()]
+        weights = synop_weights(aia_synop_map)
 
         aia_data = aia_synop_map.data
         aia_data[np.isnan(aia_data)] = 0
@@ -133,7 +155,7 @@ def create_synoptic_map(endtime):
 
     synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
-    synop_map.meta['crln_new'] = aia_map.meta['crln_obs']
+    # synop_map.meta['crln_new'] = aia_map.meta['crln_obs']
     return synop_map
 
 

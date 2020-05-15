@@ -23,12 +23,12 @@ import plot_helpers
 import website_helpers
 
 
-def create_figure(dtime, aia_map):
+def create_figure(dtime, aia_maps):
     """
     dtime
-        Datetime at which the PSP orbit is sampled
-    aia_map : GenericMap
-        A synoptic AIA map to show on the bottom panel.
+        Datetime at which the orbits are sampled.
+    aia_maps : dict
+        Dictionary of AIA maps.
     """
     dtime_str = Time(dtime).isot
     # Get PFSS/GONG data
@@ -42,13 +42,16 @@ def create_figure(dtime, aia_map):
     # Trace magnetic field line
     fline = pfss_helpers.trace(gong_map, psp_loc_ss, input, retrace=True)
 
-    # Plot everything
-    fig = plt.figure(figsize=(12, 6))
+    # Get AIA synoptic maps
+    aia_map = aia_helpers.create_synoptic_map(dtime, aia_maps)
 
     dobs = psp_loc.obstime.isot[0]
-    # Magnetogram
+    # Get magnetogram
     gong_map = input._map_in
     gong_date = gong_map.meta['DATE_ORI']
+
+    # Plot everything
+    fig = plt.figure(figsize=(12, 6))
 
     fig.suptitle(f'{dtime}')
     ax = fig.add_subplot(2, 2, 1, projection=gong_map)
@@ -89,18 +92,14 @@ def create_figure(dtime, aia_map):
 
 if __name__ == '__main__':
     # Set start date and end date
-    #
-    # For PSP, see peri_dates.csv for a list
     sdate = datetime.now() - timedelta(days=6)
     sdate = datetime(sdate.year, sdate.month, sdate.day, 0)
     edate = datetime.now() + timedelta(days=7)
     print(sdate, edate)
 
-    # Get an AIA synoptic map
-    if edate > datetime.now():
-        aia_map = aia_helpers.create_synoptic_map(datetime.now())
-    else:
-        aia_map = aia_helpers.create_synoptic_map(edate)
+    # This dict is filled by create figure, but create it here to keep
+    # it persistent between calls
+    aia_maps = {}
 
     savedir = pathlib.Path('figures')
     savedir.mkdir(exist_ok=True, parents=True)
@@ -110,12 +109,9 @@ if __name__ == '__main__':
         # Check if we already have a file
         if not fname.exists() or (sdate > datetime.now() - timedelta(hours=12)):
             print(f"Creating figure for {sdate}")
-            fig = create_figure(sdate + timedelta(hours=12), aia_map)
-            fig.savefig(savedir / f'{sdate.year}{sdate.month:02}{sdate.day:02}.png',
-                        bbox_inches='tight', dpi=150)
-            plt.close(fig)
+            fig = create_figure(sdate + timedelta(hours=12), aia_maps)
+            fig.savefig(fname, bbox_inches='tight', dpi=150)
+            plt.close('all')
         else:
             print(f'Figure already present for {sdate}')
         sdate += timedelta(days=1)
-
-    # website_helpers.gen_html(peri_n)
