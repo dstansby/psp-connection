@@ -36,10 +36,10 @@ def sync_gong(year=datetime.now().year,
     for daydir in daydirs:
         ftp.cwd(f"/oQR/zqs/{year}{month}/{daydir}")
         files = ftp.nlst()
-        for file in files:
-            local_file = local / daydir / file
-            if not local_file.exists():
-                dl.enqueue_file(f"ftp://gong2.nso.edu/oQR/zqs/{year}{month}/{daydir}/{file}", local / daydir, file)
+        file = files[0]
+        local_file = local / daydir / file
+        if not local_file.exists():
+            dl.enqueue_file(f"ftp://gong2.nso.edu/oQR/zqs/{year}{month}/{daydir}/{file}", local / daydir, file)
 
     if dl.queued_downloads > 0:
         print(f'Downloading {dl.queued_downloads} files')
