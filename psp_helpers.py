@@ -13,21 +13,12 @@ for kernel in ['psp', 'planet_trajectories',
     spice.furnish(k)
 
 
-def psp_loc(dtime):
-    psp = spice.Trajectory('SPP')
-    psp.generate_positions([dtime], 'Sun', 'IAU_SUN')
-    psp_coord = psp.coords
-    psp_coord.representation_type = 'spherical'
-    return psp_coord
-
-
-def solo_loc(dtime):
-    solo = spice.Trajectory("Solar Orbiter")
-    solo.generate_positions([dtime], 'Sun', 'IAU_SUN')
-    solo.change_units(u.au)
-    solo_coord = solo.coords
-    solo_coord.representation_type = 'spherical'
-    return solo_coord
+def loc(dtime, body):
+    traj = spice.Trajectory(body)
+    traj.generate_positions([dtime], 'Sun', 'IAU_SUN')
+    traj_coord = traj.coords
+    traj_coord.representation_type = 'spherical'
+    return traj_coord
 
 
 def spiral_correction(psp_coord, vsw):

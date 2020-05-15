@@ -35,23 +35,27 @@ def create_figure(dtime, aia_maps):
     gong_map, infuture = gong_helpers.get_closest_map(dtime)
     input, ssmap = pfss_helpers.compute_pfss(gong_map, dtime)
 
-    # Get PSP location data
-    psp_loc = psp_helpers.solo_loc(dtime)
-    psp_loc_ss = psp_helpers.spiral_correction(psp_loc, 350 * u.km / u.s)
-
-    # Trace magnetic field line
-    fline = pfss_helpers.trace(gong_map, psp_loc_ss, input, retrace=True)
+    # Get location data
+    flines = []
+    locs = []
+    body_locs = []
+    for body in ['Solar Orbiter', 'SPP']:
+        body_locs.append(psp_helpers.loc(dtime, body))
+        locs.append(psp_helpers.spiral_correction(body_locs[-1], 350 * u.km / u.s))
+        # Trace magnetic field line
+        flines.append(
+            pfss_helpers.trace(gong_map, locs[-1], input, retrace=True))
 
     # Get AIA synoptic maps
     aia_map = aia_helpers.create_synoptic_map(dtime, aia_maps)
 
-    dobs = psp_loc.obstime.isot[0]
+    dobs = body_locs[-1].obstime.isot[0]
     # Get magnetogram
     gong_map = input._map_in
     gong_date = gong_map.meta['DATE_ORI']
 
     # Plot everything
-    fig = plt.figure(figsize=(7, 9.5))
+    fig = plt.figure(figsize=(7, 8))
 
     ax = fig.add_subplot(2, 1, 1, projection=gong_map)
     gong_map.plot(axes=ax, cmap='RdBu',
@@ -61,26 +65,31 @@ def create_figure(dtime, aia_maps):
             fontsize=6, transform=ax.transAxes)
     for coord in ax.coords:
         coord.set_axislabel(' ')
-    ax.plot_coord(fline, lw=1, color='k')
-    ax.plot_coord(psp_loc_ss, color='black', marker='o', ms=5)
+    for fline, loc, marker in zip(flines, locs, ['o', 's']):
+        ax.plot_coord(fline, lw=1, color='k')
+        ax.plot_coord(loc, color='black', marker=marker, ms=5)
     ax.contour(ssmap.data, levels=[0], colors='black', linewidths=0.5)
 
     aia_map.meta['date-obs'] = dtime_str
     # AIA synoptic map
     ax = fig.add_subplot(2, 1, 2, projection=aia_map)
     aia_map.plot(axes=ax)
-    ax.plot_coord(fline, lw=1, color='w')
-    ax.plot_coord(psp_loc_ss, color='w', marker='o', ms=5)
+    for fline, loc, marker in zip(flines, locs, ['o', 's']):
+        ax.plot_coord(fline, lw=1, color='white')
+        ax.plot_coord(loc, color='white', marker=marker, ms=5)
     ax.set_title('AIA 193 synoptic map')
     # plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.35, top=0.85, bottom=0.2)
-    fig.text(
-        0.1, 0.3,
-        (f'● Solar Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU'))
+    for name, marker, loc, offset in zip(['Solar Orbiter',
+                                          'PSP          '],
+                                         ['●', '◾️'],
+                                         body_locs,
+                                         [0.07, 0.05]):
+        fig.text(
+            0.3, offset,
+            (f'{marker} {name} r = {loc.radius[0].to_value(u.au):.03} AU'))
 
-    plt.show()
-    exit()
     return fig
 
 
