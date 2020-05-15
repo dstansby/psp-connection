@@ -51,12 +51,12 @@ def create_figure(dtime, aia_maps):
     gong_date = gong_map.meta['DATE_ORI']
 
     # Plot everything
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(7, 9.5))
 
     ax = fig.add_subplot(2, 1, 1, projection=gong_map)
     gong_map.plot(axes=ax, cmap='RdBu',
                   norm=mcolor.SymLogNorm(linthresh=5, vmin=-100, vmax=100, base=10))
-    ax.set_title(f'{dtime}\nInput GONG magnetogram', pad=12)
+    ax.set_title(f'{dtime}\n\nInput GONG magnetogram', pad=12)
     ax.text(0.01, 1.02, (f'Last updated {gong_date}'), color='black',
             fontsize=6, transform=ax.transAxes)
     for coord in ax.coords:
@@ -75,6 +75,9 @@ def create_figure(dtime, aia_maps):
     # plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.35, top=0.85, bottom=0.2)
+    fig.text(
+        0.1, 0.3,
+        (f'● Solar Orbiter r = {psp_loc.radius[0].to_value(u.au):.03} AU'))
 
     plt.show()
     exit()
