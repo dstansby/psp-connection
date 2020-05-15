@@ -52,8 +52,10 @@ def download_start_of_day_map(dtime):
     """
     import parfive
     dl = parfive.Downloader(max_conn=1)
-    url = (f"http://jsoc2.stanford.edu/data/aia/synoptic/nrt/{dtime.year}/{dtime.month:02}/{dtime.day:02}/"
-           f"H0000/AIA{dtime.year}{dtime.month:02}{dtime.day:02}_000000_0193.fits")
+    url = (f"http://jsoc2.stanford.edu/data/aia/synoptic/nrt/"
+           f"{dtime.year}/{dtime.month:02}/{dtime.day:02}/"
+           f"H0000/AIA{dtime.year}{dtime.month:02}{dtime.day:02}_"
+           f"000000_0193.fits")
     dl.enqueue_file(url, filename=map_path(dtime))
     dl.download()
     """
