@@ -82,7 +82,7 @@ def create_figure(dtime, aia_maps):
 
     fig.subplots_adjust(hspace=0.35, top=0.85, bottom=0.2)
     for name, marker, loc, offset in zip(['Solar Orbiter',
-                                          'PSP          '],
+                                          'PSP               '],
                                          ['●', '◾️'],
                                          body_locs,
                                          [0.07, 0.05]):
