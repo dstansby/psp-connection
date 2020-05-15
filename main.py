@@ -97,6 +97,8 @@ if __name__ == '__main__':
     # Set start date and end date
     sdate = datetime.now() - timedelta(days=6)
     sdate = datetime(sdate.year, sdate.month, sdate.day, 0)
+
+    sdate = datetime(2020, 2, 11)
     edate = datetime.now() + timedelta(days=7)
     print(sdate, edate)
 
