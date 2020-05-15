@@ -40,7 +40,7 @@ def synoptic_map_path(dtime):
 def download_start_of_day_map(dtime):
     dtime = start_of_day(dtime)
     # This is broken for now, see https://github.com/sunpy/sunpy/issues/4159
-    """print(f'Fetching AIA map for {dtime}')
+    print(f'Fetching AIA map for {dtime}')
     query = (a.Time(dtime, dtime + timedelta(days=1), dtime),
              a.Instrument('AIA'),
              a.Wavelength(193 * u.Angstrom))
@@ -49,6 +49,8 @@ def download_start_of_day_map(dtime):
         mappath = Fido.fetch(result[0, 0])[0]
     except IndexError as e:
         raise RuntimeError(f'No AIA map available for {dtime}')
+    mappath = pathlib.Path(mappath)
+    mappath.replace(map_path(dtime))
     """
     import parfive
     dl = parfive.Downloader(max_conn=1)
@@ -57,10 +59,10 @@ def download_start_of_day_map(dtime):
            f"H0000/AIA{dtime.year}{dtime.month:02}{dtime.day:02}_"
            f"000000_0193.fits")
     dl.enqueue_file(url, filename=map_path(dtime))
-    dl.download()
-    """
-    mappath = pathlib.Path(mappath)
-    mappath.replace(map_path(dtime))
+    res = dl.download()
+    if len(res.errors):
+        print(res.errors)
+        raise RuntimeError('Download failed')'''
     """
 
 
@@ -72,7 +74,9 @@ def load_start_of_day_map(dtime):
 
     print(f'Loading AIA map for {dtime}')
     try:
-        return Map(str(mappath))
+        ret = Map(str(mappath))
+        ret.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
+        return ret
     except OSError as e:
         raise RuntimeError(f'No AIA map available for {dtime}') from e
 
@@ -81,7 +85,6 @@ def synop_reproject(dtime, shape_out):
     synop_map_path = synoptic_map_path(dtime)
     if not synop_map_path.exists():
         m = load_start_of_day_map(dtime)
-        m.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value(u.m)
         # Reproject
         print(f'Reprojecting {synop_map_path}')
         header = synop_header(shape_out, m.date)
@@ -123,22 +126,22 @@ def create_synoptic_map(endtime, aia_maps={}):
     weight_sum = np.zeros(shape)
     nmaps = 23
 
+    dtimes = [endtime - timedelta(days=i) for i in range(nmaps)[::-1]]
     # Fill up aia_maps
-    for i in range(nmaps)[::-1]:
-        dtime = endtime - timedelta(days=i)
+    for dtime in dtimes:
         if dtime.date() in aia_maps:
             continue
         aia_maps[dtime.date()] = synop_reproject(dtime, shape)
 
     # Add up all the reprojected maps
-    for i in range(nmaps)[::-1]:
-        dtime = endtime - timedelta(days=i)
+    for dtime in dtimes:
         aia_synop_map = aia_maps[dtime.date()]
         weights = synop_weights(aia_synop_map)
 
-        aia_data = aia_synop_map.data
+        aia_data = aia_synop_map.data * weights
+        weights[np.isnan(aia_data)] = 0
         aia_data[np.isnan(aia_data)] = 0
-        data += (aia_data * weights)
+        data += aia_data
         weight_sum += weights
 
     weight_sum[weight_sum == 0] = np.nan

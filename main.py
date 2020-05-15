@@ -69,6 +69,8 @@ def create_figure(dtime, aia_maps):
         ax.plot_coord(fline, lw=1, color='k')
         ax.plot_coord(loc, color='black', marker=marker, ms=5)
     ax.contour(ssmap.data, levels=[0], colors='black', linewidths=0.5)
+    ax.set_xlim(0, gong_map.data.shape[1] - 1)
+    ax.set_ylim(0, gong_map.data.shape[0] - 1)
 
     aia_map.meta['date-obs'] = dtime_str
     # AIA synoptic map
@@ -78,6 +80,8 @@ def create_figure(dtime, aia_maps):
         ax.plot_coord(fline, lw=1, color='white')
         ax.plot_coord(loc, color='white', marker=marker, ms=5)
     ax.set_title('AIA 193 synoptic map')
+    ax.set_xlim(0, aia_map.data.shape[1] - 1)
+    ax.set_ylim(0, aia_map.data.shape[0] - 1)
     # plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.35, top=0.85, bottom=0.2)
@@ -90,6 +94,7 @@ def create_figure(dtime, aia_maps):
             0.3, offset,
             (f'{marker} {name} r = {loc.radius[0].to_value(u.au):.03} AU'))
 
+    fig.text(0.1, 0.01, 'd.stansby@ucl.ac.uk', alpha=0.5, fontsize=8)
     return fig
 
 
