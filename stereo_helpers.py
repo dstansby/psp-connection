@@ -36,15 +36,18 @@ def synoptic_map_path(dtime):
 
 def download_beacon(dtime):
     datestr = dtime.strftime('%Y%m%d')
-    url = ('https://stereo-ssc.nascom.nasa.gov/pub/beacon/ahead/secchi/img'
-           f'/euvi/{datestr}/{datestr}_005530_n7euA.fts')
-    print(url)
-    dl = Downloader()
-    dl.enqueue_file(url, path=map_path(dtime).parent)
-    files = dl.download()
-    if len(files.errors):
-        raise RuntimeError(f'No EUVI beacon map available for {dtime}')
-    pathlib.Path(files[0]).replace(map_path(dtime))
+    for time in ['005530', '010530', '011530']:
+        url = ('https://stereo-ssc.nascom.nasa.gov/pub/beacon/ahead/secchi/img'
+               f'/euvi/{datestr}/{datestr}_{time}_n7euA.fts')
+        print(url)
+        dl = Downloader()
+        dl.enqueue_file(url, path=map_path(dtime).parent)
+        files = dl.download()
+        if len(files.errors):
+            continue
+        pathlib.Path(files[0]).replace(map_path(dtime))
+        return
+    raise RuntimeError(f'No EUVI beacon map available for {dtime}')
 
 
 def download_start_of_day_map(dtime):
