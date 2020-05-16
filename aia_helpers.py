@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import pathlib
 import urllib.request
 import urllib.error
+import warnings
 
 from astropy.coordinates import SkyCoord, Longitude
 from astropy.time import Time
@@ -131,11 +132,18 @@ def create_synoptic_map(endtime, aia_maps={}):
     for dtime in dtimes:
         if dtime.date() in aia_maps:
             continue
-        aia_maps[dtime.date()] = synop_reproject(dtime, shape)
+        try:
+            aia_maps[dtime.date()] = synop_reproject(dtime, shape)
+        except ValueError as e:
+            warnings.warn(f'Map for {dtime} failed to load')
 
     # Add up all the reprojected maps
     for dtime in dtimes:
-        aia_synop_map = aia_maps[dtime.date()]
+        if dtime.date() in aia_maps:
+            aia_synop_map = aia_maps[dtime.date()]
+        else:
+            warnings.warn(f'Missing map for {dtime}')
+            continue
         weights = synop_weights(aia_synop_map)
 
         aia_data = aia_synop_map.data * weights
