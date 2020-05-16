@@ -28,8 +28,8 @@ def synop_weights(synop_map):
     Get a set of weights to apply to a synoptic map.
     """
     crln_obs = synop_map.meta['crln_obs'] * u.deg
-    coord = sunpy.map.all_coordinates_from_map(synop_map)
-    longs = coord.lon.to_value(u.deg)
+    longs = np.linspace(-180, 179, synop_map.data.shape[1]) + 0.5
+    longs = np.tile(longs, (synop_map.data.shape[0], 1))
     crln_obs = crln_obs.to_value(u.deg)
     dcenterlong = longs - crln_obs
     with np.errstate(invalid='ignore'):
