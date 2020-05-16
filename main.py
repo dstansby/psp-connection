@@ -94,7 +94,7 @@ def create_figure(dtime, aia_maps):
             0.3, offset,
             (f'{marker} {name} r = {loc.radius[0].to_value(u.au):.03} AU'))
 
-    fig.text(0.1, 0.01, 'd.stansby@ucl.ac.uk', alpha=0.5, fontsize=8)
+    fig.text(0.1, 0.01, 'CC-BY - d.stansby@ucl.ac.uk', alpha=0.5, fontsize=8)
     return fig
 
 
