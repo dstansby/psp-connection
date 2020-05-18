@@ -1,8 +1,12 @@
 import pathlib
 import shutil
+import subprocess
 
 website_folder = pathlib.Path('/Users/dstansby/github/dstansby.github.io')
 code_folder = pathlib.Path('/Users/dstansby/github/psp-connection')
+
+width = 796
+height = 1142
 
 
 def html_img(fname):
@@ -28,67 +32,30 @@ def gen_html():
     Generate slideshow HTML.
     """
     print(f'Generating HTML')
-    html_start = '''
-<html>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<style>
-.mySlides {display:none}
-</style>
+    html = f'''<html>
 <body>
+<center>
 
-<div class="w3-content" style="max-width:800px">'''
+ <video width="{width * 3 // 4}" height="{height * 3 // 4}" controls>
+  <source src="/movies/solo_psp_connection/solo_psp_connection.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
 
-    html_end = '''
-</div>
-
-<div class="w3-center">
-  <div class="w3-section">
-    <button class="w3-button w3-light-grey" onclick="plusDivs(-1)">❮ Prev</button>
-    <button class="w3-button w3-light-grey" onclick="plusDivs(1)">Next ❯</button>
-  </div>
-</div>
-
-<script>
-var slideIndex = 1;
-showDivs(slideIndex);
-
-function plusDivs(n) {
-  showDivs(slideIndex += n);
-}
-
-function currentDiv(n) {
-  showDivs(slideIndex = n);
-}
-
-function showDivs(n) {
-  var i;
-  var x = document.getElementsByClassName("mySlides");
-  var dots = document.getElementsByClassName("demo");
-  if (n > x.length) {slideIndex = x.length}
-  if (n < 1) {slideIndex = 1}
-  for (i = 0; i < x.length; i++) {
-    x[i].style.display = "none";
-  }
-  for (i = 0; i < dots.length; i++) {
-    dots[i].className = dots[i].className.replace(" w3-red", "");
-  }
-  x[slideIndex-1].style.display = "block";
-  dots[slideIndex-1].className += " w3-red";
-}
-</script>
-
+</center>
 </body>
 </html>
     '''
-    new_imgs = copy_images()
-    img_html = ''
-    for img in new_imgs:
-        img_html += html_img(f'/images/solo/{img.name}')
-    html = html_start + img_html + html_end
     with open(website_folder / '_includes' / f'solo_slideshow.html', "w") as f:
         f.write(html)
 
 
+def gen_movie():
+    fname = 'solo_psp_connection.mp4'
+    ffmpeg_cmd = f"ffmpeg -framerate 5 -pattern_type glob -i 'figures/*.png' -pix_fmt yuv420p -vf scale=796:1142 {fname}"
+    subprocess.check_output(ffmpeg_cmd, shell=True)
+    shutil.copy(fname, website_folder / 'movies' / 'solo_psp_connection' / fname)
+
+
 if __name__ == '__main__':
+    gen_movie()
     gen_html()
