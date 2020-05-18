@@ -39,7 +39,9 @@ def create_figure(dtime, aia_maps):
     flines = []
     locs = []
     body_locs = []
-    for body in ['Solar Orbiter', 'SPP']:
+    for body in ['SPP', 'Solar Orbiter']:
+        if dtime < datetime(2020, 2, 11) and body == 'Solar Orbiter':
+            continue
         body_locs.append(psp_helpers.loc(dtime, body))
         locs.append(psp_helpers.spiral_correction(body_locs[-1], 350 * u.km / u.s))
         # Trace magnetic field line
@@ -65,7 +67,7 @@ def create_figure(dtime, aia_maps):
             fontsize=6, transform=ax.transAxes)
     for coord in ax.coords:
         coord.set_axislabel(' ')
-    for fline, loc, marker in zip(flines, locs, ['o', 's']):
+    for fline, loc, marker in zip(flines, locs, ['s', 'o']):
         ax.plot_coord(fline, lw=1, color='k')
         ax.plot_coord(loc, color='black', marker=marker, ms=5)
     ax.contour(ssmap.data, levels=[0], colors='black', linewidths=0.5)
@@ -76,7 +78,7 @@ def create_figure(dtime, aia_maps):
     # AIA synoptic map
     ax = fig.add_subplot(2, 1, 2, projection=aia_map)
     aia_map.plot(axes=ax)
-    for fline, loc, marker in zip(flines, locs, ['o', 's']):
+    for fline, loc, marker in zip(flines, locs, ['s', 'o']):
         ax.plot_coord(fline, lw=1, color='white')
         ax.plot_coord(loc, color='white', marker=marker, ms=5)
     ax.set_title('AIA 193 synoptic map')
@@ -85,11 +87,12 @@ def create_figure(dtime, aia_maps):
     # plot_helpers.add_fov(ax, dtime)
 
     fig.subplots_adjust(hspace=0.35, top=0.85, bottom=0.2)
-    for name, marker, loc, offset in zip(['Solar Orbiter',
-                                          'PSP               '],
-                                         ['●', '◾️'],
+    for name, marker, loc, offset in zip(['PSP               ',
+                                          'Solar Orbiter',
+                                          ],
+                                         ['◾️', '●'],
                                          body_locs,
-                                         [0.07, 0.05]):
+                                         [0.05, 0.07]):
         fig.text(
             0.3, offset,
             (f'{marker} {name} r = {loc.radius[0].to_value(u.au):.03} AU'))
