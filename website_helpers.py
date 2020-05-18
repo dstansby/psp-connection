@@ -1,3 +1,4 @@
+import glob
 import pathlib
 import shutil
 import subprocess
@@ -27,7 +28,7 @@ def copy_images():
     return new_imgs
 
 
-def gen_html():
+def gen_html(tstart):
     """
     Generate slideshow HTML.
     """
@@ -37,7 +38,7 @@ def gen_html():
 <center>
 
  <video width="{width * 3 // 4}" height="{height * 3 // 4}" controls>
-  <source src="/movies/solo_psp_connection/solo_psp_connection.mp4" type="video/mp4">
+  <source src="/movies/solo_psp_connection/solo_psp_connection.mp4#t={tstart}" type="video/mp4">
 Your browser does not support the video tag.
 </video>
 
@@ -50,12 +51,17 @@ Your browser does not support the video tag.
 
 
 def gen_movie():
+    # Calculate where to start movie
+    nframes = len(glob.glob('figures/*.png'))
+    frate = 5
+    t = (nframes - 14) // frate
     fname = 'solo_psp_connection.mp4'
-    ffmpeg_cmd = f"ffmpeg -framerate 5 -pattern_type glob -i 'figures/*.png' -pix_fmt yuv420p -vf scale=796:1142 {fname}"
+    ffmpeg_cmd = f"ffmpeg -framerate {frate} -pattern_type glob -i 'figures/*.png' -pix_fmt yuv420p -vf scale=796:1142 {fname}"
     subprocess.check_output(ffmpeg_cmd, shell=True)
     shutil.copy(fname, website_folder / 'movies' / 'solo_psp_connection' / fname)
+    return t
 
 
 if __name__ == '__main__':
-    gen_movie()
-    gen_html()
+    tstart = gen_movie()
+    gen_html(tstart)
