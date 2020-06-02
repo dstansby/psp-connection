@@ -53,7 +53,7 @@ Your browser does not support the video tag.
 def gen_movie():
     # Calculate where to start movie
     nframes = len(glob.glob('figures/*.png'))
-    frate = 5
+    frate = 10
     t = (nframes - 14) // frate
     fname = 'solo_psp_connection.mp4'
     ffmpeg_cmd = f"ffmpeg -framerate {frate} -pattern_type glob -i 'figures/*.png' -pix_fmt yuv420p -vf scale=796:1142 {fname}"
