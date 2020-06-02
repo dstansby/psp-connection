@@ -110,4 +110,4 @@ def gong_daily_files(year, month):
 
 
 if __name__ == '__main__':
-    sync_gong(2020, 2)
+    sync_gong()
