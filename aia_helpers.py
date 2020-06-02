@@ -40,9 +40,11 @@ def synoptic_map_path(dtime):
 
 def download_start_of_day_map(dtime):
     dtime = start_of_day(dtime)
-    # This is broken for now, see https://github.com/sunpy/sunpy/issues/4159
     print(f'Fetching AIA map for {dtime}')
-    """query = (a.Time(dtime, dtime + timedelta(days=1), dtime),
+
+    # This is broken for now, see https://github.com/sunpy/sunpy/issues/4159
+    """
+    query = (a.Time(dtime, dtime + timedelta(days=1), dtime),
              a.Instrument('AIA'),
              a.Wavelength(193 * u.Angstrom))
     result = Fido.search(*query)
@@ -51,7 +53,8 @@ def download_start_of_day_map(dtime):
     except IndexError as e:
         raise RuntimeError(f'No AIA map available for {dtime}')
     mappath = pathlib.Path(mappath)
-    mappath.replace(map_path(dtime))"""
+    mappath.replace(map_path(dtime))
+    """
     import parfive
     dl = parfive.Downloader(max_conn=1)
     url = (f"http://jsoc2.stanford.edu/data/aia/synoptic/nrt/"
@@ -63,6 +66,7 @@ def download_start_of_day_map(dtime):
     if len(res.errors):
         print(res.errors)
         raise RuntimeError('Download failed')
+
 
 
 def load_start_of_day_map(dtime):
