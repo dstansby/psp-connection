@@ -189,4 +189,4 @@ if __name__ == '__main__':
 
     map = Map((data, map.meta))
     datestr = dtime.strftime('%Y%m%d')
-    map.save(f'aia193_synoptic_latest_{datestr}.fits')
+    map.save(f'aia193_synoptic_{datestr}.fits')
