@@ -5,7 +5,6 @@ import sunpy.coordinates.frames as frames
 import heliopy.data.spice as spicedata
 from heliopy import spice
 
-spice.setup_spice()
 
 for kernel in ['psp', 'planet_trajectories',
                'planet_orientations', 'psp_pred', 'solo']:
