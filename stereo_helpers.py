@@ -36,7 +36,7 @@ def synoptic_map_path(dtime):
 
 def download_beacon(dtime):
     datestr = dtime.strftime('%Y%m%d')
-    for time in ['005530', '010530', '011530']:
+    for time in ['000530', '001615', '005530', '010530', '011530', '043530', ]:
         url = ('https://stereo-ssc.nascom.nasa.gov/pub/beacon/ahead/secchi/img'
                f'/euvi/{datestr}/{datestr}_{time}_n7euA.fts')
         print(url)
@@ -90,6 +90,9 @@ def synop_reproject(m, shape_out):
     print(f'Loading {synop_map_path}')
     new_map = Map(synop_map_path)
     new_map.plot_settings = m.plot_settings
+    for key in m.meta:
+        if key not in new_map.meta:
+            new_map.meta[key] = m.meta[key]
     return new_map
 
 
@@ -115,7 +118,7 @@ def create_synoptic_map(endtime):
             continue
 
         aia_synop_map = synop_reproject(euvi_map, shape)
-        weights = synop_weights(aia_synop_map, euvi_map.meta['crln_obs'] * u.deg)
+        weights = synop_weights(aia_synop_map)
 
         aia_data = aia_synop_map.data
         aia_data[np.isnan(aia_data)] = 0
