@@ -7,11 +7,13 @@ from datetime import datetime, timedelta
 
 from astropy.time import Time
 import astropy.units as u
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolor
 import matplotlib.patches as mpatch
 import numpy as np
-import pandas as pd
 import pfsspy
 import sunpy.map
 
