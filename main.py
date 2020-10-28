@@ -25,7 +25,7 @@ import plot_helpers
 import website_helpers
 
 
-def create_figure(dtime, aia_maps):
+def create_figure(dtime, aia_maps, bodies=['SPP', 'Solar Orbiter']):
     """
     dtime
         Datetime at which the orbits are sampled.
@@ -41,7 +41,7 @@ def create_figure(dtime, aia_maps):
     flines = []
     locs = []
     body_locs = []
-    for body in ['SPP', 'Solar Orbiter']:
+    for body in bodies:
         if dtime < datetime(2020, 2, 11) and body == 'Solar Orbiter':
             continue
         body_locs.append(psp_helpers.loc(dtime, body))
