@@ -169,6 +169,8 @@ def create_synoptic_map(endtime, aia_maps={}):
 
     synop_map = Map((data, meta))
     synop_map.plot_settings = aia_synop_map.plot_settings
+    synop_map.plot_settings['vmin'] = 0
+    synop_map.plot_settings['vmax'] = 2000
     # synop_map.meta['crln_new'] = aia_map.meta['crln_obs']
     return synop_map
 
