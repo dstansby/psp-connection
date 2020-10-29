@@ -3,6 +3,9 @@ import aia_helpers
 import matplotlib.patches as mpatch
 from astropy.coordinates import Longitude
 import astropy.units as u
+import numpy as np
+
+map_width = 1440
 
 
 def add_fov(ax, dtime):
@@ -14,12 +17,12 @@ def add_fov(ax, dtime):
 
     def add_lon_fov(fov, y0, color):
         kwargs = dict(clip_on=False, color=color, alpha=0.7)
-        x = [lon.to(u.deg).value for lon in fov]
+        x = np.array([lon.to(u.deg).value for lon in fov]) * map_width / 360
         # If FOV crosses zero longitude
         bar_height = 0.8 * height
         if x[0] > x[1]:
             rects = [mpatch.Rectangle((0, y0), x[1] - 0, bar_height, **kwargs),
-                     mpatch.Rectangle((x[0], y0), 360 - x[0], bar_height, **kwargs)]
+                     mpatch.Rectangle((x[0], y0), map_width - x[0], bar_height, **kwargs)]
         else:
             rects = [mpatch.Rectangle((x[0], y0), x[1] - x[0], bar_height, **kwargs)]
         for rect in rects:
